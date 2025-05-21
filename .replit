@@ -1,0 +1,19 @@
+run = "python main.py"
+modules = ["python-3.11", "postgresql-16"]
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "python main.py"]
+
+[workflows]
+runButton = "Run Agent"
+
+[[workflows.workflow]]
+name = "Run Agent"
+author = 17731565
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
