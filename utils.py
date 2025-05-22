@@ -56,42 +56,42 @@ def build_prompt_with_memory(user_input: str,
 
 
 def format_shopify_order(raw_order: dict) -> dict:
-    """Flattens nested Shopify GraphQL order format to match the Pydantic schema."""
+    """Flattens nested Shopify GraphQL order format to match the Pydantic schema with snake_case keys."""
 
     formatted_order = {
-        "id":
-        raw_order["id"],
-        "name":
-        raw_order["name"],
-        "createdAtTs":
-        raw_order["createdAt"],
-        "updatedAtTs":
-        raw_order["updatedAt"],
-        "createdAtDate":str(
-        datetime.fromisoformat(raw_order["createdAt"].replace(
-            "Z", "+00:00")).date()),
-        "updatedAtDate":str(
-        datetime.fromisoformat(raw_order["updatedAt"].replace(
-            "Z", "+00:00")).date()),
-        "email":
-        raw_order.get("email"),
-        "customerEmail":
-        raw_order.get("customer", {}).get("email"),
-        "originalTotal": float(raw_order.get("originalTotalPriceSet", {}).get("shopMoney", {}).get("amount", 0)),
-        "currentTotal": float(raw_order.get("currentTotalPriceSet", {}).get("shopMoney", {}).get("amount", 0)),
-        "lineItems": [{
-            "name":
-            li["node"]["name"],
-            "quantity":
-            li["node"]["quantity"],
-            "sku":
-            li["node"].get("sku"),
-            "amount":
-            float(li["node"]["originalTotalSet"]["shopMoney"]["amount"])
-        } for li in raw_order.get("lineItems", {}).get("edges", [])]
+        "id": raw_order["id"],
+        "name": raw_order["name"],
+        "created_at_ts": raw_order["createdAt"],
+        "updated_at_ts": raw_order["updatedAt"],
+        "created_at_date": str(
+            datetime.fromisoformat(raw_order["createdAt"].replace("Z", "+00:00")).date()
+        ),
+        "updated_at_date": str(
+            datetime.fromisoformat(raw_order["updatedAt"].replace("Z", "+00:00")).date()
+        ),
+        "email": raw_order.get("email"),
+        "customer_email": raw_order.get("customer", {}).get("email"),
+        "original_total": float(
+            raw_order.get("originalTotalPriceSet", {})
+            .get("shopMoney", {})
+            .get("amount", 0)
+        ),
+        "current_total": float(
+            raw_order.get("currentTotalPriceSet", {})
+            .get("shopMoney", {})
+            .get("amount", 0)
+        ),
+        "line_items": [
+            {
+                "name": li["node"]["name"],
+                "quantity": li["node"]["quantity"],
+                "sku": li["node"].get("sku"),
+                "amount": float(li["node"]["originalTotalSet"]["shopMoney"]["amount"]),
+            }
+            for li in raw_order.get("lineItems", {}).get("edges", [])
+        ],
     }
-    
-   
+
     return formatted_order
 
 def describe_model(class_name: str):

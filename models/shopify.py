@@ -16,34 +16,21 @@ class ShopifyOrder(BaseModel):
     """Pydantic model defining the schema of a Shopify order object, one record per order"""
     id: str = Field(..., description="Shopify global ID for the order")
     name: str = Field(..., description="Order name as shown in Shopify")
-    createdAtTs: str = Field(
+    created_at_ts: str = Field(
         ..., description="ISO timestamp of when the order was created")
-    updatedAtTs: str = Field(
+    updated_at_ts: str = Field(
         ..., description="ISO timestamp of the last update to the order")
-    createdAtDate: str = Field(
-        ...,
-        description=
-        "Date (ISO timestamp converted to YYYY-MM-DD format) of when the order was created"
-    )
-    updatedAtDate: str = Field(
-        ...,
-        description=
-        "Date (ISO timestamp converted to YYYY-MM-DD format) of the last update to the order"
-    )
+    created_at_date: str = Field(
+        ..., description="Date (ISO timestamp converted to YYYY-MM-DD format) of when the order was created")
+    updated_at_date: str = Field(
+        ..., description="Date (ISO timestamp converted to YYYY-MM-DD format) of the last update to the order")
     email: Optional[str] = Field(
         None, description="Customer's email address on file")
-    customerEmail: Optional[str] = Field(
-        None,
-        description="Email address from the customer object, if available")
-    originalTotal: float = Field(
-        ...,
-        description=
-        "Original total amount in USD$ for the order, including discounts & taxes"
-    )
-    currentTotal: float = Field(
-        ...,
-        description=
-        "Current total amount in USD$ for the order, including discounts & taxes"
-    )
-    lineItems: List[ShopifyLineItem] = Field(
+    customer_email: Optional[str] = Field(
+        None, description="Email address from the customer object, if available")
+    original_total: float = Field(
+        ..., description="Original total amount in USD$ for the order, including discounts & taxes")
+    current_total: float = Field(
+        ..., description="Current total amount in USD$ for the order, including discounts & taxes")
+    line_items: List[ShopifyLineItem] = Field(
         ..., description="List of line items included in the order")

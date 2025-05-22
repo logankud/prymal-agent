@@ -148,11 +148,11 @@ def get_orders(
             formatted_order = format_shopify_order(raw)
   
             # Extract lineItems and temporarily remove for ShopifyOrder validation
-            line_items = formatted_order.pop("lineItems", [])
+            line_items = formatted_order.pop("line_items", [])
   
-            # Validate the order without lineItems
-            order = ShopifyOrder(**{**formatted_order, "lineItems": []})
-            validated_orders.append({**formatted_order, "lineItems": line_items})  # keep full order in memory
+            # Validate the order without line_items
+            order = ShopifyOrder(**{**formatted_order, "line_items": []})
+            validated_orders.append({**formatted_order, "line_items": line_items})  # keep full order in memory
   
             for li in line_items:
                 try:

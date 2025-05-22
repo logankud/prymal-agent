@@ -18,7 +18,7 @@ def insert_df_to_postgres(memory_key: str, table_name: str) -> str:
         str: Success or error message.
     """
     try:
-        df: pd.DataFrame = get_dataframe_from_memory(memory_key)
+        df = get_dataframe_from_memory(memory_key)
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -39,7 +39,7 @@ def insert_df_to_postgres(memory_key: str, table_name: str) -> str:
         conn.commit()
         return f"✅ Inserted {len(df)} rows into {table_name}"
     except Exception as e:
-        return f"❌ Error inserting data.  Error: {str(e)}.  Insert query: {insert_query}"
+        return f"❌ Error inserting data.  Error: {str(e)}.  Check that the table exists and that the schema of the data matches the table being inserted into.  Insert query: {insert_query}.  Example record from the data: {df.head(1).to_dict(orient='records')}"
     finally:
         if 'cursor' in locals(): cursor.close()
         if 'conn' in locals(): conn.close()
