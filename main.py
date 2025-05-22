@@ -118,6 +118,7 @@ options = webdriver.ChromeOptions()
 options.add_argument('--headless')  # Run in headless mode
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
+options.binary_location = '/usr/bin/chromium-browser'
 # Create a Chrome driver with the defined options
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
