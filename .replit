@@ -1,8 +1,10 @@
+
 run = "python main.py"
-modules = ["python-3.11", "postgresql-16"]
+modules = ["python-3.11", "postgresql-16", "nodejs-18.x"]
+
 [nix]
 channel = "stable-24_05"
-packages = ["libxcrypt", "chromedriver", "chromium"]
+packages = ["libxcrypt", "chromedriver", "chromium", "nodejs"]
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
