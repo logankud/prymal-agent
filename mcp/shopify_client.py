@@ -28,8 +28,12 @@ class ShopifyMCPClient:
 
     def call_tool(self, tool: str, input_dict: dict) -> dict:
         request = json.dumps({"tool": tool, "input": input_dict})
-        self.process.stdin.write(request + '\n')
-        self.process.stdin.flush()
+        try:
+            self.process.stdin.write(request + '\n')
+            self.process.stdin.flush()
+        except IOError as e:
+            self.process.terminate()
+            raise RuntimeError(f"Failed to write to dev-mcp process: {e}")
 
         # Add timeout to prevent hanging
         start_time = time.time()
@@ -37,16 +41,21 @@ class ShopifyMCPClient:
             if self.process.poll() is not None:
                 raise RuntimeError("dev-mcp process exited unexpectedly.")
 
-            if self.process.stdout.readable():
-                line = self.process.stdout.readline()
-                if line:
-                    try:
-                        return json.loads(line)
-                    except json.JSONDecodeError:
-                        raise ValueError(f"Invalid JSON from dev-mcp: {line}")
+            try:
+                if self.process.stdout.readable():
+                    line = self.process.stdout.readline().strip()
+                    if line:
+                        try:
+                            return json.loads(line)
+                        except json.JSONDecodeError:
+                            print(f"Warning: Invalid JSON received: {line}")
+                            continue
+            except IOError as e:
+                raise RuntimeError(f"Failed to read from dev-mcp process: {e}")
 
-            if time.time() - start_time > 10:
-                raise TimeoutError("Timeout waiting for dev-mcp response.")
+            if time.time() - start_time > 15:  # Increased timeout
+                self.process.terminate()
+                raise TimeoutError("Timeout waiting for dev-mcp response")
 
             time.sleep(0.1)
 
