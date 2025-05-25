@@ -1,5 +1,5 @@
 
-run = "python main.py"
+run = "python agent.py"
 modules = ["python-3.11", "postgresql-16", "nodejs-18.x"]
 
 [nix]
@@ -7,7 +7,7 @@ channel = "stable-24_05"
 packages = ["libxcrypt", "chromedriver", "chromium", "nodejs"]
 
 [deployment]
-run = ["sh", "-c", "python main.py"]
+run = ["sh", "-c", "python agent.py"]
 
 [workflows]
 runButton = "Run Agent"
@@ -19,4 +19,4 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "python agent.py"

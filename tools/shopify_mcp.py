@@ -4,30 +4,31 @@ from mcp.shopify_client import ShopifyMCPClient
 mcp = ShopifyMCPClient()
 
 @tool
-def search_shopify_docs(query: str) -> str:
+def search_shopify_docs(prompt: str) -> str:
     """
-    Search Shopify documentation for information on APIs, Polaris components, and other dev topics.
+    Search Shopify developer docs using the MCP 'search_dev_docs' tool.
 
     Args:
-        query (str): The search string to query Shopify documentation.
+        prompt (str): Natural-language question or keyword.
 
     Returns:
-        str: A relevant snippet or result from the Shopify developer documentation.
+        str: Relevant doc content snippets.
     """
-    return mcp.call_tool("search_dev_docs", {"query": query})["output"]
+    result = mcp.call_tool("search_dev_docs", {"prompt": prompt})
+    return "\n\n".join([r["text"] for r in result["content"]])
 
 @tool
-def introspect_shopify_admin_schema(query: str) -> str:
+def introspect_shopify_schema(prompt: str) -> str:
     """
-    Introspect the Shopify Admin GraphQL schema to find available fields, types, or mutations.
+    Search Shopify Admin GraphQL schema.
 
     Args:
-        query (str): The search string for schema exploration.
+        prompt (str): Search terms (e.g. 'product createdAt field').
 
     Returns:
-        str: Matching schema elements or descriptions from the Admin GraphQL API.
+        str: Relevant schema output.
     """
-    return mcp.call_tool("introspect_admin_schema", {"query": query})["output"]
+    result = mcp.call_tool("introspect_admin_schema", {"prompt": prompt})
+    return "\n\n".join([r["text"] for r in result["content"]])
 
-# Register tools
-shopify_tools = [search_shopify_docs, introspect_shopify_admin_schema]
+shopify_tools = [search_shopify_docs, introspect_shopify_schema]

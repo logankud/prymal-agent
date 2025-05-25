@@ -1,7 +1,4 @@
-import subprocess
-import json
-import time
-import threading
+import subprocess, json, uuid, time, threading
 
 def log_stderr(process):
     def stream():
@@ -23,29 +20,42 @@ def main():
     log_stderr(process)
 
     try:
-        request = {
-            "tool": "search_dev_docs",
-            "input": {"query": "how to create a discount code"}
+        # Step 1: initialize
+        init_request = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "test-client",
+                    "version": "0.1.0"
+            }
         }
 
-        print("[DEBUG] Sending request:", request)
-        process.stdin.write(json.dumps(request) + '\n')
+        process.stdin.write(json.dumps(init_request) + '\n')
         process.stdin.flush()
+        init_response = process.stdout.readline().strip()
+        print("Init response:", init_response)
 
-        start = time.time()
-        while True:
-            if process.poll() is not None:
-                raise RuntimeError("MCP server exited unexpectedly")
+        # Step 2: tool call
+        tool_request = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": "tools/call",
+            "params": {
+                "name": "search_dev_docs",
+                "arguments": {
+                    "prompt": "fetch all orders from 2025-01-01 to 2025-01-10"
+                }
+            }
+        }
 
-            if process.stdout.readable():
-                line = process.stdout.readline()
-                if line:
-                    print("[MCP RESPONSE]", line.strip())
-                    break
-
-            if time.time() - start > 10:
-                raise TimeoutError("Timed out waiting for response")
-            time.sleep(0.1)
+        process.stdin.write(json.dumps(tool_request) + '\n')
+        process.stdin.flush()
+        tool_response = process.stdout.readline().strip()
+        print("Tool response:", tool_response)
 
     finally:
         print("Shutting down MCP...")
