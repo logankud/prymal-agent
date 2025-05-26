@@ -4,31 +4,40 @@ from mcp.shopify_client import ShopifyMCPClient
 mcp = ShopifyMCPClient()
 
 @tool
-def search_shopify_docs(prompt: str) -> str:
+def search_shopify_docs(prompt: str,top_n:int) -> str:
     """
     Search Shopify developer docs using the MCP 'search_dev_docs' tool.
 
     Args:
         prompt (str): Natural-language question or keyword.
+        top_n (int): Number of top results to return.
 
     Returns:
         str: Relevant doc content snippets.
     """
     result = mcp.call_tool("search_dev_docs", {"prompt": prompt})
-    return "\n\n".join([r["text"] for r in result["content"]])
+
+    top_results = result["content"][:top_n]
+
+    return "\n\n".join([r["text"] for r in top_results])
+
 
 @tool
-def introspect_shopify_schema(prompt: str) -> str:
+def introspect_shopify_schema(query: str, top_n: int) -> str:
     """
-    Search Shopify Admin GraphQL schema.
+    Search the Shopify Admin GraphQL schema using a natural language query.
+    Use this to understand which fields or types to query for.
 
     Args:
-        prompt (str): Search terms (e.g. 'product createdAt field').
+        query (str): Natural-language query to search the schema.
+        top_n (int): Number of top results to return.
 
-    Returns:
-        str: Relevant schema output.
+    Example: query = "order createdAt and lineItems"
     """
-    result = mcp.call_tool("introspect_admin_schema", {"prompt": prompt})
-    return "\n\n".join([r["text"] for r in result["content"]])
 
-shopify_tools = [search_shopify_docs, introspect_shopify_schema]
+    result = mcp.call_tool("introspect_admin_schema", {"query": query})
+
+    # Filter to only return the top_n results
+    top_results = result["content"][:top_n]
+    
+    return "\n\n".join([r["text"] for r in top_results])

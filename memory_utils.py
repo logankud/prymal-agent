@@ -29,3 +29,26 @@ def get_dataframe_from_memory(key: str) -> pd.DataFrame:
     except Exception as e:
         raise ValueError(f"Failed to convert memory data to DataFrame: {e}")
 
+
+def store_message(session_id: str, agent_name: str, role: str, message: str):
+    """
+    Stores a message in the conversation history table in postgres
+
+    Args:
+        session_id (str): The session ID
+        agent_name (str): The name of the agent
+        role (str): The role of the agent
+        message (str): The message to store
+
+    """
+
+    # Connect to the database
+    conn = get_db_connection()
+    
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO conversation_history (session_id, agent_name, role, message)
+                VALUES (%s, %s, %s, %s)
+            """, (session_id, agent_name, role, message))
+

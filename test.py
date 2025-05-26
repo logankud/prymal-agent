@@ -33,6 +33,7 @@ def main():
                     "version": "0.1.0"
             }
         }
+        }
 
         process.stdin.write(json.dumps(init_request) + '\n')
         process.stdin.flush()
@@ -44,10 +45,16 @@ def main():
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
             "method": "tools/call",
+            # "params": {
+            #     "name": "search_dev_docs",
+            #     "arguments": {
+            #         "prompt": "fetch all orders from 2025-01-01 to 2025-01-10"
+            #     }
+
             "params": {
-                "name": "search_dev_docs",
+                "name": "introspect_admin_schema",
                 "arguments": {
-                    "prompt": "fetch all orders from 2025-01-01 to 2025-01-10"
+                    "query": "order createdAt customer"
                 }
             }
         }
