@@ -94,10 +94,15 @@ def chat_loop():
     
         print("\nCOPILOT ▶", reply)
     
-        # store agent memory steps locally for inspection:
+        # get full steps completed by manager_agent
         mem = manager_agent.memory.get_full_steps()
     
         print(f'mem: {mem}')
+
+        # store agent memory steps locally for inspection:
+        with open('agent_memory_steps.json', 'w') as f:
+            json.dump(mem, f, indent=4)
+            
     
     
 
