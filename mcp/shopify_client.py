@@ -23,7 +23,9 @@ class ShopifyMCPClient:
         """Background thread to stream stderr logs."""
         def stream():
             for line in self.process.stderr:
-                print("[dev-mcp STDERR]", line.strip(), file=sys.stderr)
+                # Filter out verbose response text while keeping other logs
+                if "Response text (truncated)" not in line:
+                    print("[dev-mcp STDERR]", line.strip(), file=sys.stderr)
         threading.Thread(target=stream, daemon=True).start()
 
     def _rpc(self, payload: dict) -> dict:
