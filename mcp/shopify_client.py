@@ -89,10 +89,7 @@ class ShopifyMCPClient:
             }
         }
 
-        print(f"[dev-mcp REQUEST] {json.dumps(request)}")
         response = self._rpc(request)
-
-        print(f"[dev-mcp RESPONSE] {json.dumps(response)}")
         if response.get("error"):
             raise RuntimeError(f"Tool error: {response['error']}")
         return response["result"]
