@@ -1,13 +1,18 @@
 import os
 import json 
 import yaml
-from smolagents import CodeAgent, ToolCallingAgent, OpenAIServerModel
+from smolagents import CodeAgent, ToolCallingAgent, OpenAIServerModel, InferenceClientModel
 from tools.shopify_mcp import search_shopify_docs, introspect_shopify_schema
 from tools import run_shopify_query
-from tools.memory_setup import ChatHistory
-from utils import build_prompt_with_memory
+from utils import build_prompt_with_memory, detect_final_response
 from models.huggingface import HFTextGenModel
-from memory_utils import store_message
+from memory_utils import store_message, get_recent_history
+from phoenix.otel import register
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from llm.huggingface_model import HFModel
+
+register()
+SmolagentsInstrumentor().instrument()
 
 # Set your OpenAI API key
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -30,11 +35,11 @@ with open("prompts/analyst_system_prompt.txt", "r") as f:
     print(ANALYST_SYSTEM_PROMPT)
 
 # Set model (use HF if testing)
-MODEL = OpenAIServerModel(model_id="gpt-4.1-nano",
+MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",
                           api_key=os.environ["OPENAI_API_KEY"])
 
 # Instantiate agent
-analyst_agent = ToolCallingAgent(name='Analyst',
+analyst_agent = CodeAgent(name='Analyst',
                     model=MODEL,
                   description=ANALYST_SYSTEM_PROMPT,
                   # additional_authorized_imports=[
@@ -49,7 +54,9 @@ analyst_agent = ToolCallingAgent(name='Analyst',
                       run_shopify_query,
                       search_shopify_docs, 
                     introspect_shopify_schema                
-                  ])
+                  ],
+                   step_callbacks=[detect_final_response]
+                 )
 
 # Manager Agent
 # ----------------------------------------
@@ -59,9 +66,20 @@ with open("prompts/manager_system_prompt.txt", "r") as f:
     MANAGER_SYSTEM_PROMPT = f.read()
     print(MANAGER_SYSTEM_PROMPT)
 
-# Set model (use HF if testing)
-MODEL = OpenAIServerModel(model_id="gpt-4.1-nano",
+# Set model 
+# -------
+
+MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",    # OpenAI model
                           api_key=os.environ["OPENAI_API_KEY"])
+
+# MODEL = HFModel(model_id="deepseek-ai/DeepSeek-R1-0528")    # HuggingFace model
+
+# MODEL = InferenceClientModel(
+#     model_id="deepseek-ai/DeepSeek-R1-0528",
+#     # provider="together",  
+#     token=os.environ["HUGGING_FACE_TOKEN"]  
+# )
+
 
 # Instantiate agent
 manager_agent = CodeAgent(name='Manager',
@@ -76,7 +94,8 @@ manager_agent = CodeAgent(name='Manager',
                   #     "json"
                   # ],
                   tools=[],
-                managed_agents=[analyst_agent]
+                  managed_agents=[analyst_agent]
+                          
                          )
 
 def chat_loop():
@@ -86,22 +105,30 @@ def chat_loop():
     while True:
     
         user_input = input("\nUSER ▶ ")
+
+        store_message(session_id='test', agent_name='user', role='user', message=user_input)
         if user_input.lower() in {"exit", "quit"}:
             break
+
+        # build prompt with memory
+        recent_chat_history = get_recent_history(session_id='test', limit=10)
+        # Construct the prompt
+        recent_chat_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_chat_history])
+        prompt = f"""Recent chat history: \n
+                    {recent_chat_text} \n\n
+                    User Input: \n
+                    {user_input}
+                    """
     
         # reply = run_agent_with_user_interjection(manager_agent, user_input)    
-        reply = manager_agent.run(user_input)
+        reply = manager_agent.run(prompt)
+        store_message(session_id='test', agent_name='Manager', role='agent', message=reply)
     
         print("\nCOPILOT ▶", reply)
     
         # get full steps completed by manager_agent
         mem = manager_agent.memory.get_full_steps()
-    
-        print(f'mem: {mem}')
 
-        # store agent memory steps locally for inspection:
-        with open('agent_memory_steps.json', 'w') as f:
-            json.dump(mem, f, indent=4)
             
     
     

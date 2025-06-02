@@ -50,6 +50,6 @@ def run_shopify_query(query: str) -> dict:
         raise RuntimeError(f"Shopify API error {response.status_code}: {response.text}")
 
     if 'errors' in response.json():
-        raise RuntimeError(f"GraphQL error: {response.json()['errors']} - try delegating to the Researcher Agent for help.")
+        raise RuntimeError(f"GraphQL error: {response.json()['errors']} - try using the search_shopify_docs tool to find contextual help")
 
     return response.json()

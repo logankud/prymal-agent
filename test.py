@@ -52,9 +52,9 @@ def main():
             #     }
 
             "params": {
-                "name": "introspect_admin_schema",
+                "name": "search_dev_docs",
                 "arguments": {
-                    "query": "order createdAt customer"
+                    "prompt": "fetch all orders from 2025-01-01 to 2025-01-10"
                 }
             }
         }
@@ -62,7 +62,14 @@ def main():
         process.stdin.write(json.dumps(tool_request) + '\n')
         process.stdin.flush()
         tool_response = process.stdout.readline().strip()
+
+        
         print("Tool response:", tool_response)
+        print(f"Type: {type(tool_response)}")
+
+
+        n=1
+        print(f"Top {n}: {tool_response['content'][:n]}")
 
     finally:
         print("Shutting down MCP...")

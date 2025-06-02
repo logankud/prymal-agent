@@ -41,3 +41,7 @@ def introspect_shopify_schema(query: str, top_n: int) -> str:
     top_results = result["content"][:top_n]
     
     return "\n\n".join([r["text"] for r in top_results])
+
+
+result = search_shopify_docs("fetch all orders from 2025-01-01 to 2025-01-10", 1)
+print(result)

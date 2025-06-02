@@ -4,8 +4,6 @@ from langchain.memory import ConversationBufferMemory
 import os
 import json
 
-ChatHistory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
 
 class AgentMemory:
   def __init__(self, filename="agent_memory.json"):

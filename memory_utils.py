@@ -52,3 +52,14 @@ def store_message(session_id: str, agent_name: str, role: str, message: str):
                 VALUES (%s, %s, %s, %s)
             """, (session_id, agent_name, role, message))
 
+def get_recent_history(session_id: str, limit=20) -> list[dict]:
+    conn = get_db_connection()
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT role, message FROM conversation_history
+                WHERE session_id = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+            """, (session_id, limit))
+            return [{"role": r, "content": m} for r, m in reversed(cur.fetchall())]
