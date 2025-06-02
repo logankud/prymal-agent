@@ -19,7 +19,15 @@ def search_shopify_docs(prompt: str,top_n:int) -> str:
 
     top_results = result["content"][:top_n]
 
-    return "\n\n".join([r["text"] for r in top_results])
+    # Truncate each result to prevent massive log output
+    truncated_results = []
+    for r in top_results:
+        text = r["text"]
+        if len(text) > 500:  # Limit to 500 characters
+            text = text[:500] + "... [truncated]"
+        truncated_results.append(text)
+
+    return "\n\n".join(truncated_results)
 
 
 @tool
