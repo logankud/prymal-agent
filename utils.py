@@ -14,19 +14,22 @@ def detect_final_response(step: ActionStep, agent):
         agent (CodeAgent): The agent executing the step
     """
     
-    # Access the agent's memory
-    memory = agent.memory
-
-    # Iterate through the memory steps in reverse to find the latest entries
-    for step in memory:
-        # Check if the step is a dictionary (which it should be)
-        if isinstance(step, dict):
-            # Check if the step contains a 'final_answer'
-            if 'final_answer' in step:
+    # Check if the current step contains a final_answer
+    if hasattr(step, 'tool_calls') and step.tool_calls:
+        for tool_call in step.tool_calls:
+            if hasattr(tool_call, 'function') and tool_call.function.name == 'final_answer':
                 # Interject or perform desired action
                 input("Interjecting: Analyst has provided a final_answer.")
                 # You can add additional logic here to pause or modify the agent's behavior
                 break
+    
+    # Alternative: check if step has any final_answer content
+    if hasattr(step, 'content') and 'final_answer' in str(step.content):
+        input("Interjecting: Analyst has provided a final_answer.")
+        
+    # Alternative: check the step's string representation
+    if 'final_answer' in str(step):
+        input("Interjecting: Analyst has provided a final_answer.")
         
 def wipe_short_term_memory_postgres_tables():
     """
