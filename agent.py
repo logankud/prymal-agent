@@ -56,7 +56,7 @@ analyst_agent = CodeAgent(name='Analyst',
                     introspect_shopify_schema                
                   ],
                    step_callbacks=[trigger_manager_review],
-                   provide_run_summary=True  # Analyst provides summary of work done
+                   provide_run_summary=True  # provide summary of work done
                  )
 
 # Manager Agent
@@ -96,7 +96,7 @@ manager_agent = CodeAgent(name='Manager',
                   # ],
                   tools=[],
                   managed_agents=[analyst_agent],
-                  final_answer_check=True  # Manager validates final answers
+                  final_answer_check=True  # validates final answers from managed agents
                          )
 
 def chat_loop():
