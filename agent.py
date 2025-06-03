@@ -4,7 +4,7 @@ import yaml
 from smolagents import CodeAgent, ToolCallingAgent, OpenAIServerModel, InferenceClientModel
 from tools.shopify_mcp import search_shopify_docs, introspect_shopify_schema
 from tools import run_shopify_query
-from utils import build_prompt_with_memory, detect_final_response
+from utils import build_prompt_with_memory, detect_final_response, trigger_manager_review
 from models.huggingface import HFTextGenModel
 from memory_utils import store_message, get_recent_history
 from phoenix.otel import register
@@ -55,7 +55,7 @@ analyst_agent = CodeAgent(name='Analyst',
                       search_shopify_docs, 
                     introspect_shopify_schema                
                   ],
-                   step_callbacks=[detect_final_response]
+                   step_callbacks=[trigger_manager_review]
                  )
 
 # Manager Agent

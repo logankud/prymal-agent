@@ -4,6 +4,22 @@ from datetime import datetime
 import psycopg2
 from memory_utils import get_db_connection
 from smolagents import ActionStep
+from memory_utils import store_message
+
+
+def trigger_manager_review(step):
+    if step.get("is_final_response"):
+        step["review_prompt"] = (
+            "Please review the Analyst's answer:\n\n"
+            f"{step['content']}\n\n"
+            "Checklist:\n"
+            "- Was the analysis thorough?\n"
+            "- Was proper pagination used?\n"
+            "- Were assumptions clearly stated?\n"
+            "- Any errors or missing considerations?"
+        )
+    return step
+
 
 def detect_final_response(step: ActionStep, agent):
     """
@@ -14,7 +30,6 @@ def detect_final_response(step: ActionStep, agent):
         step (ActionStep): The step to intercept (huggingface smolagents ActionStep type)
         agent (CodeAgent): The agent executing the step
     """
-    from memory_utils import store_message
     
     # Only check if the current step contains an actual final_answer tool call
     if hasattr(step, 'tool_calls') and step.tool_calls:
