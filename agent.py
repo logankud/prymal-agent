@@ -32,7 +32,6 @@ if not OPENAI_API_KEY:
 # Read in system prompt text from prompts/researcher_system_prompt.txt
 with open("prompts/analyst_system_prompt.txt", "r") as f:
     ANALYST_SYSTEM_PROMPT = f.read()
-    print(ANALYST_SYSTEM_PROMPT)
 
 # Set model (use HF if testing)
 MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",
@@ -55,7 +54,7 @@ analyst_agent = CodeAgent(name='Analyst',
                       search_shopify_docs, 
                     introspect_shopify_schema                
                   ],
-                   step_callbacks=[trigger_manager_review],
+                   # step_callbacks=[trigger_manager_review],
                    provide_run_summary=True  # provide summary of work done
                  )
 
@@ -65,7 +64,6 @@ analyst_agent = CodeAgent(name='Analyst',
 # Read in system prompt text from prompts/researcher_system_prompt.txt
 with open("prompts/manager_system_prompt.txt", "r") as f:
     MANAGER_SYSTEM_PROMPT = f.read()
-    print(MANAGER_SYSTEM_PROMPT)
 
 # Set model 
 # -------
@@ -96,7 +94,7 @@ manager_agent = CodeAgent(name='Manager',
                   # ],
                   tools=[],
                   managed_agents=[analyst_agent],
-                  final_answer_check=True  # validates final answers from managed agents
+                  final_answer_checks=True  # validates final answers from managed agents
                          )
 
 def chat_loop():
