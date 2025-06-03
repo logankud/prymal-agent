@@ -8,6 +8,7 @@ from smolagents import ActionStep
 def detect_final_response(step: ActionStep, agent):
     """
     Intercepts the step execution of the Analyst managed agent and waits for input before continuing
+    Only triggers when final_answer tool is actually being called.
     
     Args:
         step (ActionStep): The step to intercept (huggingface smolagents ActionStep type)
@@ -15,7 +16,7 @@ def detect_final_response(step: ActionStep, agent):
     """
     from memory_utils import store_message
     
-    # Check if the current step contains a final_answer
+    # Only check if the current step contains an actual final_answer tool call
     if hasattr(step, 'tool_calls') and step.tool_calls:
         for tool_call in step.tool_calls:
             if hasattr(tool_call, 'function') and tool_call.function.name == 'final_answer':
@@ -27,16 +28,6 @@ def detect_final_response(step: ActionStep, agent):
                 
                 # You can add additional logic here to pause or modify the agent's behavior
                 break
-    
-    # Alternative: check if step has any final_answer content
-    if hasattr(step, 'content') and 'final_answer' in str(step.content):
-        user_feedback = input("INTERJECTION: Analyst has provided a final_answer. Please provide feedback: ")
-        store_message(session_id='test', agent_name='user', role='user', message=user_feedback)
-        
-    # Alternative: check the step's string representation
-    if 'final_answer' in str(step):
-        user_feedback = input("INTERJECTION: Analyst has provided a final_answer. Please provide feedback: ")
-        store_message(session_id='test', agent_name='user', role='user', message=user_feedback)
         
 def wipe_short_term_memory_postgres_tables():
     """
