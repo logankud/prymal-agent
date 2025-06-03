@@ -19,7 +19,7 @@ def detect_final_response(step: ActionStep, agent):
         for tool_call in step.tool_calls:
             if hasattr(tool_call, 'function') and tool_call.function.name == 'final_answer':
                 # Interject or perform desired action
-                input("Interjecting: Analyst has provided a final_answer.")
+                input("INTERJECTION: Analyst has provided a final_answer.")
                 # You can add additional logic here to pause or modify the agent's behavior
                 break
     
