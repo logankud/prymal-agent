@@ -28,9 +28,9 @@ def initiate_review(memory_step, agent=None):
         # Parse managed_agent response 
         agent_response = memory_step.action_output
         
-        (
+        agent_response = (
             "Please review the Analyst's answer:\n\n"
-            f"{step['content']}\n\n"
+            f"{agent_response}\n\n"
             "Checklist:\n"
             "- Was the analysis thorough?\n"
             "- Was proper pagination used?\n"
