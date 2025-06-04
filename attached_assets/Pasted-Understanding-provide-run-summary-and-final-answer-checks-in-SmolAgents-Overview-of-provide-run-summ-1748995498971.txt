@@ -1,0 +1,70 @@
+Understanding provide_run_summary and final_answer_checks in SmolAgents
+Overview of provide_run_summary and final_answer_checks
+Hugging Face’s SmolAgents framework (particularly the CodeAgent which inherits from MultiStepAgent) provides two hooks of interest:
+provide_run_summary (a boolean flag): When True, if an agent is called as a managed agent (i.e. invoked by another “manager” agent), it will include a run summary in its final answer
+huggingface.co
+. In practice, this means the managed agent’s final output will be structured to include a summary of its results or steps, in addition to the main answer. For example, an agent with provide_run_summary=True might return a short summary followed by a detailed answer as part of its final output
+medium.com
+medium.com
+.
+final_answer_checks (a list of callables): If provided, these functions are executed right before the agent returns its final answer. Each check function can validate the final answer (using the agent’s memory or other context) and signal an issue if the answer is not acceptable
+huggingface.co
+. Internally, SmolAgents runs each check and raises an AgentError if a check fails (setting final_answer=None and causing the agent to continue searching)
+kargarisaac.medium.com
+. This mechanism serves as a guardrail to ensure the answer meets certain criteria (format, completeness, correctness, etc.) before finishing.
+1. Enforcing Structured Final Answers for Managed Agents
+Can these hooks ensure a structured answer (with summary, caveats, assumptions)? Yes – with the right setup:
+Using provide_run_summary: Setting provide_run_summary=True on a managed agent will prompt it to return a more structured response when it finishes. By default, the structure includes a preamble and possibly multiple versions of the answer. For instance, SmolAgents formats the output like: “Here is the final answer from your managed agent 'AgentName':” followed by results. In an example from a multi-agent run, a retrieval sub-agent automatically returned its answer in two parts – a short summary ("Task outcome (short version)") and an extremely detailed version
+medium.com
+. This behavior was triggered by provide_run_summary=True. You can leverage this to enforce that an Analyst (managed agent) provides a summary along with the detailed answer. However, if you need specific sections like “Caveats” or “Assumptions” explicitly, you will likely need to customize the agent’s prompt or output template – SmolAgents doesn’t include those sections by default. In practice, you might extend the prompt for the managed agent (e.g. in prompt_templates["managed_agent"]["task"]) instructing it to append a summary, caveats, and assumptions to its final answer. Then, with provide_run_summary=True, the agent is guided to produce a full structured answer. This approach uses SmolAgents’ built-in summary mechanism and prompt engineering to include the extra sections.
+Using final_answer_checks: You can add a custom check function that validates the presence and completeness of all required sections (summary, caveats, assumptions) in the final answer. For example, a check function could scan the final answer text for keywords or structure and return False (or raise an exception) if any part is missing. SmolAgents will run this check before accepting the answer
+kargarisaac.medium.com
+. If the check fails, the agent will treat it as an error and not finalize; instead, it will continue the reasoning loop to improve the answer. This effectively enforces the format – the agent won’t stop until the final_answer passes all checks. By examining the error message in its memory (SmolAgents records the check failure as an error in the conversation history
+kargarisaac.medium.com
+), the LLM can adjust its next attempt to include the missing pieces. In summary, final_answer_checks acts as a safety net to guarantee the managed agent’s answer is fully structured as desired. Be sure to make the check’s error message descriptive (e.g. “Missing caveats section”) so the agent knows how to fix the output on the next try.
+Recommendation: Use a combination of both. First, instruct the format via the prompt or by enabling provide_run_summary (for built-in summary/detail structure) and explicitly mentioning caveats/assumptions in the task prompt. Then add a final_answer_checks function to validate the presence of those sections. This way, the agent is both guided to produce the structure and forced to correct it if it fails to do so.
+2. Triggering a Manager Review After a Sub-agent Finishes
+Goal: Have the Manager agent automatically execute a function (e.g. trigger_manager_review()) right after a managed agent returns its final answer, without modifying the core CodeAgent class. Neither provide_run_summary nor final_answer_checks by themselves will directly invoke an external function on the manager’s side – they operate within the managed agent’s execution. However, SmolAgents provides a mechanism to hook into an agent’s step-by-step execution: step callbacks. Every MultiStepAgent (and thus CodeAgent) supports a step_callbacks parameter, which is a list of functions to call after each step of the agent’s reasoning
+huggingface.co
+kargarisaac.medium.com
+. We can use this feature on the Manager agent:
+Step Callback Approach: When instantiating the Manager agent, supply a callback function in step_callbacks. This function will be called at the end of each step the manager takes. Inside the callback, you can detect when the manager has just executed a managed-agent call and received its result, and then trigger the review. For example:
+python
+Copy
+def review_callback(memory_step, agent=None):
+    # memory_step contains the action and observation of the last step
+    if memory_step.action and "AnalystAgentName" in str(memory_step.action):
+        # The manager just called the Analyst agent (managed agent).
+        # Now its result is in memory_step.action_output.
+        result = memory_step.action_output
+        trigger_manager_review(result)  # call the review function with the sub-agent's result
+When the Manager calls the Analyst (e.g. via code like analyst_agent(task=...)), that entire tool/agent call happens in one “step” of the Manager. The callback will fire after the step completes – at which point the Analyst’s final_answer is available in the Manager’s memory. The callback can then immediately invoke trigger_manager_review() with that answer. This occurs before the Manager moves on to its next reasoning step, effectively “intercepting” the sub-agent’s answer in real time.
+Alternative – final_answer_checks hack: It’s also possible (though less direct) to use a final_answer_checks function on the managed agent to call a manager review. For instance, you could define a check function for the Analyst agent that calls trigger_manager_review(final_answer) as a side effect and always returns True. This would execute right when the Analyst finishes and before the Manager sees the answer. However, this is a bit hacky and couples the managed agent to manager logic. A cleaner design is to keep the review logic on the Manager side via a callback, since the Manager is orchestrating the process.
+Implementation Steps:
+Configure the Analyst (Managed Agent): Enable provide_run_summary=True when creating the Analyst agent (or whichever sub-agent should return structured output). Also, if needed, customize its prompt or description to explicitly request a summary, assumptions, and caveats in the answer. Optionally, set a final_answer_checks list on this agent with a format-validation function to ensure it doesn’t stop until those sections are present
+huggingface.co
+kargarisaac.medium.com
+.
+Wrap the Analyst as a Managed Agent: When initializing the Manager CodeAgent, pass the Analyst in its managed_agents list. In SmolAgents, managed agents can be included this way so the Manager can call them like tools
+weaxsey.org
+huggingface.co
+. (If using latest versions, ensure you use the updated API for managed agents as per SmolAgents docs.)
+Attach a Step Callback to the Manager: Define a callback function as described above and provide it via the Manager’s step_callbacks parameter on initialization
+huggingface.co
+. This function should check if the last action was a call to the Analyst and, if so, execute trigger_manager_review (or whatever function you need). The memory_step object will contain the action_output (the Analyst’s answer) which you can pass along or analyze.
+Manager’s Prompt (if needed): If you want the Manager’s LLM to incorporate the review results into its own reasoning, you might feed the outcome of trigger_manager_review() back into the Manager’s context. For example, the callback could store the review result in a shared state or the Manager’s memory. Alternatively, trigger_manager_review() might log feedback that the Manager agent can access via a tool or memory on its next step. Design this according to whether the review is just for logging/validation or meant to influence the Manager’s decisions.
+Run the system: Now, when the Manager agent calls the Analyst, the Analyst will always return a structured final answer (summary + detailed answer, etc.). The Manager’s step callback will immediately fire upon receiving that answer, calling the review function. This all happens without modifying the core CodeAgent logic – we are using provided extension points (the provide_run_summary flag and callback hooks) to inject the desired behavior.
+By following these steps, you ensure that the Analyst (managed agent) produces a rich, structured answer every time, and that the Manager can automatically react (via a custom function) as soon as that answer is available. This leverages SmolAgents’ built-in hooks for final answer formatting and step callbacks for custom post-processing, achieving the goal with minimal customization to the library itself. Sources:
+SmolAgents API reference – descriptions of provide_run_summary and final_answer_checks
+huggingface.co
+.
+Medium example demonstrating a managed agent’s output with provide_run_summary=True (short summary + detailed answer)
+medium.com
+medium.com
+.
+SmolAgents internal logic for final answer checks (validation loop that ensures criteria are met before finishing)
+kargarisaac.medium.com
+.
+SmolAgents documentation on managed agents and step callbacks (extending agent behavior)
+kargarisaac.medium.com
+.

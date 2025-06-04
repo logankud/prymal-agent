@@ -7,6 +7,7 @@ from smolagents import ActionStep
 from memory_utils import store_message
 
 
+
 def trigger_manager_review(step):
     if step.get("is_final_response"):
         step["review_prompt"] = (
@@ -19,6 +20,25 @@ def trigger_manager_review(step):
             "- Any errors or missing considerations?"
         )
     return step
+
+def initiate_review(memory_step, agent=None):
+    """Initiate review"""
+    # memory_step contains the action and observation of the last step
+    if memory_step.action:
+        # Parse managed_agent response 
+        agent_response = memory_step.action_output
+        
+        (
+            "Please review the Analyst's answer:\n\n"
+            f"{step['content']}\n\n"
+            "Checklist:\n"
+            "- Was the analysis thorough?\n"
+            "- Was proper pagination used?\n"
+            "- Were assumptions clearly stated?\n"
+            "- Any errors or missing considerations?"
+        )
+        
+
 
 
 def detect_final_response(step: ActionStep, agent):
