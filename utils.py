@@ -69,34 +69,34 @@ def detect_final_response(step: ActionStep, agent):
                 # You can add additional logic here to pause or modify the agent's behavior
                 break
         
-def wipe_short_term_memory_postgres_tables():
-    """
-    Drops all Postgres tables in the 'public' schema
+# def wipe_short_term_memory_postgres_tables():
+#     """
+#     Drops all Postgres tables in the 'public' schema
 
-    Args:
-        table_prefix: Prefix to match against table names. Defaults to 'shopify_orders_'.
-    """
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+#     Args:
+#         table_prefix: Prefix to match against table names. Defaults to 'shopify_orders_'.
+#     """
+#     try:
+#         conn = get_db_connection()
+#         cursor = conn.cursor()
 
-        # Fetch table names with the prefix
-        cursor.execute(f"""
-            SELECT tablename FROM pg_tables 
-            WHERE schemaname = 'public';
-        """)
-        tables = cursor.fetchall()
+#         # Fetch table names with the prefix
+#         cursor.execute(f"""
+#             SELECT tablename FROM pg_tables 
+#             WHERE schemaname = 'public';
+#         """)
+#         tables = cursor.fetchall()
 
-        for (table_name,) in tables:
-            cursor.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE;')
-            print(f"🗑️ Dropped {table_name}")
+#         for (table_name,) in tables:
+#             cursor.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE;')
+#             print(f"🗑️ Dropped {table_name}")
 
-        conn.commit()
-    except Exception as e:
-        print(f"❌ Error wiping tables: {e}")
-    finally:
-        if 'cursor' in locals(): cursor.close()
-        if 'conn' in locals(): conn.close()
+#         conn.commit()
+#     except Exception as e:
+#         print(f"❌ Error wiping tables: {e}")
+#     finally:
+#         if 'cursor' in locals(): cursor.close()
+#         if 'conn' in locals(): conn.close()
 
 
 def get_role(msg):

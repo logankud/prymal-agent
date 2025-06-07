@@ -10,5 +10,5 @@ from .describe_tool import describe_tool
 from .generate_postgres_ddl import generate_postgres_ddl
 from .execute_sql import execute_sql
 from .generate_sql import generate_sql
-from .insert_df_to_postgres import insert_df_to_postgres
+# from .insert_df_to_postgres import insert_df_to_postgres
 from .shopify_graphql import run_shopify_query
