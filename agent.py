@@ -41,7 +41,7 @@ with open("prompts/analyst_system_prompt.txt", "r") as f:
     ANALYST_SYSTEM_PROMPT = f.read()
 
 # Set model (use HF if testing)
-MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",
+MODEL = OpenAIServerModel(model_id="gpt-4.1",
                           api_key=os.environ["OPENAI_API_KEY"])
 
 
@@ -76,7 +76,7 @@ with open("prompts/manager_system_prompt.txt", "r") as f:
 # Set model 
 # -------
 
-MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",    # OpenAI model
+MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
                           api_key=os.environ["OPENAI_API_KEY"])
 
 # MODEL = HFModel(model_id="deepseek-ai/DeepSeek-R1-0528")    # HuggingFace model

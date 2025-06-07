@@ -8,29 +8,18 @@ from memory_utils import store_message
 
 
 
-def trigger_manager_review(step):
-    if step.get("is_final_response"):
-        step["review_prompt"] = (
-            "Please review the Analyst's answer:\n\n"
-            f"{step['content']}\n\n"
-            "Checklist:\n"
-            "- Was the analysis thorough?\n"
-            "- Was proper pagination used?\n"
-            "- Were assumptions clearly stated?\n"
-            "- Any errors or missing considerations?"
-        )
-    return step
-
 def analysis_validation(model):
     def validate_final_answer(answer: str, memory) -> bool:
         prompt = (
             f"The agent has produced the following answer:\n\n{answer}\n\n"
             "Please review this answer for the following criteria:\n"
+            "- Did the analysis generate an answer or was an answer made up (or hardcoded) in order to explain how to acheive the answer?\n"
             "- Was the analysis thorough?\n"
             "- Was proper pagination used?\n"
+            "- Was the full dataset necessary for this analysis obtained and used?\n"
             "- Were assumptions clearly stated?\n"
             "- Any errors or missing considerations?\n\n"
-            "List your reasoning. At the end, reply with **PASS** or **FAIL**."
+            "List your reasoning. If no answer was provided, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
         )
         messages = [{"role": "user", "content": prompt}]
         response = model(messages)
@@ -43,61 +32,6 @@ def analysis_validation(model):
 
     return validate_final_answer
         
-
-
-
-def detect_final_response(step: ActionStep, agent):
-    """
-    Intercepts the step execution of the Analyst managed agent and waits for input before continuing
-    Only triggers when final_answer tool is actually being called.
-    
-    Args:
-        step (ActionStep): The step to intercept (huggingface smolagents ActionStep type)
-        agent (CodeAgent): The agent executing the step
-    """
-    
-    # Only check if the current step contains an actual final_answer tool call
-    if hasattr(step, 'tool_calls') and step.tool_calls:
-        for tool_call in step.tool_calls:
-            if hasattr(tool_call, 'function') and tool_call.function.name == 'final_answer':
-                # Get user input for human-in-the-loop feedback
-                user_feedback = input("INTERJECTION: Analyst has provided a final_answer. Please provide feedback: ")
-                
-                # Store the user feedback in memory thread
-                store_message(session_id='test', agent_name='user', role='user', message=user_feedback)
-                
-                # You can add additional logic here to pause or modify the agent's behavior
-                break
-        
-# def wipe_short_term_memory_postgres_tables():
-#     """
-#     Drops all Postgres tables in the 'public' schema
-
-#     Args:
-#         table_prefix: Prefix to match against table names. Defaults to 'shopify_orders_'.
-#     """
-#     try:
-#         conn = get_db_connection()
-#         cursor = conn.cursor()
-
-#         # Fetch table names with the prefix
-#         cursor.execute(f"""
-#             SELECT tablename FROM pg_tables 
-#             WHERE schemaname = 'public';
-#         """)
-#         tables = cursor.fetchall()
-
-#         for (table_name,) in tables:
-#             cursor.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE;')
-#             print(f"🗑️ Dropped {table_name}")
-
-#         conn.commit()
-#     except Exception as e:
-#         print(f"❌ Error wiping tables: {e}")
-#     finally:
-#         if 'cursor' in locals(): cursor.close()
-#         if 'conn' in locals(): conn.close()
-
 
 def get_role(msg):
     if isinstance(msg, HumanMessage):
