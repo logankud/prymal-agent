@@ -30,7 +30,7 @@ def get_dataframe_from_memory(key: str) -> pd.DataFrame:
         raise ValueError(f"Failed to convert memory data to DataFrame: {e}")
 
 
-def store_message(session_id: str, agent_name: str, role: str, message: str):
+def store_message(session_id: str, agent_name: str, role: str, message):
     """
     Stores a message in the conversation history table in postgres
 
@@ -38,9 +38,18 @@ def store_message(session_id: str, agent_name: str, role: str, message: str):
         session_id (str): The session ID
         agent_name (str): The name of the agent
         role (str): The role of the agent
-        message (str): The message to store
+        message: The message to store (any type, will be converted to string)
 
     """
+    import json
+    
+    # Convert message to string regardless of input type
+    if isinstance(message, dict):
+        message_str = json.dumps(message)
+    elif isinstance(message, (list, tuple, set)):
+        message_str = json.dumps(list(message))
+    else:
+        message_str = str(message)
 
     # Connect to the database
     conn = get_db_connection()
@@ -50,7 +59,7 @@ def store_message(session_id: str, agent_name: str, role: str, message: str):
             cur.execute("""
                 INSERT INTO conversation_history (session_id, agent_name, role, message)
                 VALUES (%s, %s, %s, %s)
-            """, (session_id, agent_name, role, message))
+            """, (session_id, agent_name, role, message_str))
 
 def get_recent_history(session_id: str, limit=20) -> list[dict]:
     conn = get_db_connection()
