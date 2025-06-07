@@ -1,0 +1,12 @@
+{
+  "question": "How many orders were placed on 2025-05-25?",
+  "ground_truth": "76"
+},
+{
+  "question": "What product sold the most on 2025-05-25?",
+  "ground_truth": "Salted Caramel"
+},
+{
+  "question": "Who was the top customer by total value in May 2025?",
+  "ground_truth": "John Smith"
+}
