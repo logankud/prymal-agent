@@ -1,0 +1,64 @@
+~/workspace$ python oauth_slack.py
+[dev-mcp STDERR] (node:9501) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+[dev-mcp STDERR] (Use `node --trace-warnings ...` to show where the warning was created)
+[dev-mcp STDERR] [api-information] Making GET request to: https://shopify.dev/mcp/getting_started_apis
+[dev-mcp STDERR] [api-information] Response status: 200 OK
+[dev-mcp STDERR] Shopify Dev MCP Server v1.1.0 running on stdio
+[dev-mcp STDERR] [shopify-docs] Making GET request to: https://shopify.dev/mcp/search?query=fetch+all+orders+from+2025-01-01+to+2025-01-10
+[dev-mcp STDERR] [shopify-docs] Response status: 200 OK
+[
+  {
+    "score": 0.419348005359434,
+    "content": "## ShopifyQL reference\n\nDocumentation URL: https://shopify.dev/api/shopifyql/shopifyql-reference\n\nAccess the complete language reference for ShopifyQL.\n\n> Note:\n> The ShopifyQL API is being [sunset as of version 2024-07](https://shopify.dev/changelog/shopifyql-admin-graphql-api-sunset).\n> Please consider using alternative sources of data in the [Admin GraphQL API](https://shopify.dev/docs/api/admin-graphql) for your use-cases, such as... [truncated]
+🔭 OpenTelemetry Tracing Details 🔭
+|  Phoenix Project: default
+|  Span Processor: SimpleSpanProcessor
+|  Collector Endpoint: localhost:4317
+|  Transport: gRPC
+|  Transport Headers: {'user-agent': '****'}
+|  
+|  Using a default SpanProcessor. `add_span_processor` will overwrite this default.
+|  
+|  ⚠️ WARNING: It is strongly advised to use a BatchSpanProcessor in production environments.
+|  
+|  `register` has set this TracerProvider as the global OpenTelemetry default.
+|  To disable this behavior, call `register` with `set_global_tracer_provider=False`.
+
+ * Serving Flask app 'oauth_slack'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.31.128.67:5000
+Press CTRL+C to quit
+ * Restarting with stat
+[dev-mcp STDERR] (node:9632) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+[dev-mcp STDERR] (Use `node --trace-warnings ...` to show where the warning was created)
+[dev-mcp STDERR] [api-information] Making GET request to: https://shopify.dev/mcp/getting_started_apis
+[dev-mcp STDERR] [api-information] Response status: 200 OK
+[dev-mcp STDERR] Shopify Dev MCP Server v1.1.0 running on stdio
+[dev-mcp STDERR] [shopify-docs] Making GET request to: https://shopify.dev/mcp/search?query=fetch+all+orders+from+2025-01-01+to+2025-01-10
+[dev-mcp STDERR] [shopify-docs] Response status: 200 OK
+[
+  {
+    "score": 0.419348198894491,
+    "content": "## ShopifyQL reference\n\nDocumentation URL: https://shopify.dev/api/shopifyql/shopifyql-reference\n\nAccess the complete language reference for ShopifyQL.\n\n> Note:\n> The ShopifyQL API is being [sunset as of version 2024-07](https://shopify.dev/changelog/shopifyql-admin-graphql-api-sunset).\n> Please consider using alternative sources of data in the [Admin GraphQL API](https://shopify.dev/docs/api/admin-graphql) for your use-cases, such as... [truncated]
+🔭 OpenTelemetry Tracing Details 🔭
+|  Phoenix Project: default
+|  Span Processor: SimpleSpanProcessor
+|  Collector Endpoint: localhost:4317
+|  Transport: gRPC
+|  Transport Headers: {'user-agent': '****'}
+|  
+|  Using a default SpanProcessor. `add_span_processor` will overwrite this default.
+|  
+|  ⚠️ WARNING: It is strongly advised to use a BatchSpanProcessor in production environments.
+|  
+|  `register` has set this TracerProvider as the global OpenTelemetry default.
+|  To disable this behavior, call `register` with `set_global_tracer_provider=False`.
+
+ * Debugger is active!
+ * Debugger PIN: 140-452-227
+172.31.128.67 - - [07/Jun/2025 19:00:06] "GET / HTTP/1.1" 404 -
+172.31.128.67 - - [07/Jun/2025 19:00:06] "GET / HTTP/1.1" 404 -
+172.31.128.67 - - [07/Jun/2025 19:00:06] "GET / HTTP/1.1" 404 -
