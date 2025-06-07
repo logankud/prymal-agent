@@ -1,0 +1,56 @@
+
+# Exclude large files and directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Exclude datasets and models
+*.csv
+*.json
+*.pkl
+*.h5
+*.model
+data/
+models/
+datasets/
+memories/
+
+# Exclude logs and temporary files
+*.log
+tmp/
+temp/
+.cache/
+slack_installations/
+slack_states/
+
+# Exclude development files
+.git/
+.gitignore
+README.md
+.env
+.vscode/
+.idea/
+.config/
+
+# Exclude browser cache and downloads
+chromium_downloads/
+browser_cache/
+chrome/
+attached_assets/

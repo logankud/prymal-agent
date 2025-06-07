@@ -89,7 +89,7 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",    # OpenAI model
 
 
 # Instantiate agent
-manager_agent = CodeAgent(name='Manager',
+manager_agent = SelfValidatingCodeAgent(name='Manager',
                     model=MODEL,
                   description=MANAGER_SYSTEM_PROMPT,
                   # additional_authorized_imports=[
