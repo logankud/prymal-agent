@@ -1,0 +1,45 @@
+
+{
+  "display_information": {
+    "name": "Prymal AI Copilot",
+    "description": "AI assistant for Shopify data analysis",
+    "background_color": "#2c2d30"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Prymal AI Copilot",
+      "always_online": true
+    }
+  },
+  "oauth_config": {
+    "redirect_urls": [
+      "https://your-repl-url.repl.co/slack/oauth_redirect"
+    ],
+    "scopes": {
+      "bot": [
+        "channels:history",
+        "chat:write",
+        "im:history",
+        "im:write",
+        "mpim:history",
+        "mpim:write"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://your-repl-url.repl.co/slack/events",
+      "bot_events": [
+        "message.channels",
+        "message.im",
+        "message.mpim"
+      ]
+    },
+    "interactivity": {
+      "is_enabled": false
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
