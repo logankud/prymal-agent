@@ -11,7 +11,9 @@ from phoenix.otel import register
 from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 from llm.huggingface_model import HFModel
 
-register()
+register(
+    endpoint="http://0.0.0.0:4317"
+)
 SmolagentsInstrumentor().instrument()
 
 # Set your OpenAI API key
@@ -107,10 +109,10 @@ manager_agent = SelfValidatingCodeAgent(name='Manager',
 
 def chat_loop():
 
-    
+
 
     while True:
-    
+
         user_input = input("\nUSER ▶ ")
 
         store_message(session_id='test', agent_name='user', role='user', message=user_input)
@@ -126,19 +128,19 @@ def chat_loop():
                     User Input: \n
                     {user_input}
                     """
-    
+
         # reply = run_agent_with_user_interjection(manager_agent, user_input)    
         reply = manager_agent.run(prompt)
         store_message(session_id='test', agent_name='Manager', role='agent', message=reply)
-    
+
         print("\nCOPILOT ▶", reply)
-    
+
         # get full steps completed by manager_agent
         mem = manager_agent.memory.get_full_steps()
 
-            
-    
-    
+
+
+
 
 if __name__ == "__main__":
     chat_loop()
