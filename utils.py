@@ -21,22 +21,27 @@ def trigger_manager_review(step):
         )
     return step
 
-def initiate_review(memory_step, agent=None):
-    """Initiate review"""
-    # memory_step contains the action and observation of the last step
-    if memory_step.action:
-        # Parse managed_agent response 
-        agent_response = memory_step.action_output
-        
-        agent_response = (
-            "Please review the Analyst's answer:\n\n"
-            f"{agent_response}\n\n"
-            "Checklist:\n"
+def analysis_validation(model):
+    def validate_final_answer(answer: str, memory) -> bool:
+        prompt = (
+            f"The agent has produced the following answer:\n\n{answer}\n\n"
+            "Please review this answer for the following criteria:\n"
             "- Was the analysis thorough?\n"
             "- Was proper pagination used?\n"
             "- Were assumptions clearly stated?\n"
-            "- Any errors or missing considerations?"
+            "- Any errors or missing considerations?\n\n"
+            "List your reasoning. At the end, reply with **PASS** or **FAIL**."
         )
+        messages = [{"role": "user", "content": prompt}]
+        response = model(messages)
+        feedback = response.content.strip()
+
+        print("Checklist feedback:", feedback)
+        if "FAIL" in feedback:
+            raise Exception(feedback)
+        return True
+
+    return validate_final_answer
         
 
 

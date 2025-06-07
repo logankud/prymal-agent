@@ -4,7 +4,7 @@ import yaml
 from smolagents import CodeAgent, ToolCallingAgent, OpenAIServerModel, InferenceClientModel
 from tools.shopify_mcp import search_shopify_docs, introspect_shopify_schema
 from tools import run_shopify_query
-from utils import build_prompt_with_memory, detect_final_response, trigger_manager_review
+from utils import build_prompt_with_memory, analysis_validation
 from models.huggingface import HFTextGenModel
 from memory_utils import store_message, get_recent_history
 from phoenix.otel import register
@@ -26,6 +26,13 @@ if not OPENAI_API_KEY:
 # ----------------------------------------
 
 
+# Custom class for self-validating agents
+class SelfValidatingCodeAgent(CodeAgent):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.final_answer_checks = [analysis_validation(self.model)]
+
+
 # Analyst Agent
 # ----------------------------------------
 
@@ -37,8 +44,9 @@ with open("prompts/analyst_system_prompt.txt", "r") as f:
 MODEL = OpenAIServerModel(model_id="gpt-4.1-mini",
                           api_key=os.environ["OPENAI_API_KEY"])
 
+
 # Instantiate agent
-analyst_agent = CodeAgent(name='Analyst',
+analyst_agent = SelfValidatingCodeAgent(name='Analyst',
                     model=MODEL,
                   description=ANALYST_SYSTEM_PROMPT,
                   # additional_authorized_imports=[
@@ -94,7 +102,7 @@ manager_agent = CodeAgent(name='Manager',
                   # ],
                   tools=[],
                   managed_agents=[analyst_agent],
-                  final_answer_checks=True  # validates final answers from managed agents
+                  # final_answer_checks=True  # validates final answers from managed agents
                          )
 
 def chat_loop():
