@@ -11,7 +11,7 @@ from agent import manager_agent
 from memory_utils import store_message, get_recent_history
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "your-secret-key-here")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 # OAuth configuration
 client_id = os.environ.get("SLACK_CLIENT_ID")
