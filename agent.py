@@ -11,10 +11,15 @@ from phoenix.otel import register
 from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 from llm.huggingface_model import HFModel
 
-register(
-    endpoint="http://0.0.0.0:4317"
-)
-SmolagentsInstrumentor().instrument()
+# Optional Phoenix tracing - only enable if Phoenix server is available
+try:
+    register(
+        endpoint="http://0.0.0.0:4317"
+    )
+    SmolagentsInstrumentor().instrument()
+    print("✅ Phoenix tracing enabled")
+except Exception as e:
+    print(f"⚠️ Phoenix tracing disabled (Phoenix server not available): {e}")
 
 # Set your OpenAI API key
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
