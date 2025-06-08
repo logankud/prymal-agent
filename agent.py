@@ -85,7 +85,7 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
 
 
 # Instantiate agent
-manager_agent = SelfValidatingCodeAgent(name='Manager',
+manager_agent = CodeAgent(name='Manager',
                     model=MODEL,
                   description=MANAGER_SYSTEM_PROMPT,
                   # prompt_templates=manager_prompt_template,
