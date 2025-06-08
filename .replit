@@ -15,7 +15,7 @@ runButton = "Run Agent"
 [[workflows.workflow]]
 name = "Run Agent"
 author = 17731565
-mode = "sequential"
+mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
