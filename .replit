@@ -19,6 +19,10 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "python -m phoenix.server.main serve"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
 args = "python agent.py"
 
 [[workflows.workflow]]
@@ -29,6 +33,19 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python oauth_slack.py"
+
+[[workflows.workflow]]
+name = "Run Phoenix + Evaluation"
+author = 17731565
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m phoenix.server.main serve"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python evaluate.py"
 
 [[ports]]
 localPort = 4317
