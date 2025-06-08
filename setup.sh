@@ -1,9 +1,13 @@
 #!/bin/bash
 echo "🔧 Starting setup..."
 
-# Install MCP package
-echo "📦 Installing Shopify MCP..."
-npm install @shopify/dev-mcp
+# Check if we're in deployment mode (skip MCP in deployment)
+if [ "$REPL_DEPLOYMENT" != "1" ]; then
+    echo "📦 Installing Shopify MCP..."
+    npm install @shopify/dev-mcp
+else
+    echo "📦 Skipping MCP installation in deployment mode"
+fi
 
 # Database setup with retry logic
 echo "🗄️ Setting up database..."
@@ -19,12 +23,13 @@ CREATE TABLE IF NOT EXISTS conversation_history (
 );
 SELECT 'Database setup successful' AS status;
 "; then
-        echo "✅ Database setup completed"
-        break
+        echo "✅ Database setup completed successfully"
+        exit 0
     else
-        echo "⚠️ Database setup attempt $i failed, retrying..."
+        echo "⚠️ Database setup attempt $i failed, retrying in 2 seconds..."
         sleep 2
     fi
 done
 
-echo "🔧 Setup complete"
+echo "❌ Database setup failed after 5 attempts"
+exit 1

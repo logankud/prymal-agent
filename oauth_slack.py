@@ -159,11 +159,25 @@ if __name__ == "__main__":
     os.makedirs("./slack_installations", exist_ok=True)
     os.makedirs("./slack_states", exist_ok=True)
     
-    print("🚀 Starting Flask OAuth server on 0.0.0.0:5000...")
-    print(f"Flask secret key set: {'Yes' if app.secret_key else 'No'}")
-    print(f"Slack client ID set: {'Yes' if client_id else 'No'}")
+    # Environment validation
+    required_vars = ["FLASK_SECRET_KEY", "SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET", "SLACK_SIGNING_SECRET"]
+    missing_vars = [var for var in required_vars if not os.environ.get(var)]
+    
+    if missing_vars:
+        print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
+        print("Please set these in your Replit Secrets")
+        import sys
+        sys.exit(1)
+    
+    print("🚀 Starting Flask OAuth server...")
+    print(f"Host: 0.0.0.0")
+    print(f"Port: 5000")
+    print(f"Flask secret key: {'✅ Set' if app.secret_key else '❌ Missing'}")
+    print(f"Slack client ID: {'✅ Set' if client_id else '❌ Missing'}")
+    print(f"Database connection: {'✅ Ready' if os.environ.get('PGHOST') else '❌ Not configured'}")
     
     try:
+        print("🔥 Flask server starting...")
         app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
     except Exception as e:
         print(f"❌ Failed to start Flask app: {e}")
