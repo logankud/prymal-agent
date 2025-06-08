@@ -8,7 +8,7 @@ packages = ["bash", "glibcLocales", "libxcrypt", "libyaml", "nodejs"]
 
 [deployment]
 run = ["sh", "-c", "python oauth_slack.py"]
-build = ["sh", "-c", "sh setup.sh"]
+build = ["sh", "-c", "bash setup.sh"]
 
 [workflows]
 runButton = "Run Agent"

@@ -15,6 +15,7 @@ def analysis_validation(model):
             "Please review this answer for the following criteria:\n"
             "- Did the analysis generate an answer or was an answer made up (or hardcoded) in order to explain how to acheive the answer?\n"
             "- Was actual code used to generate the answer?\n"
+            "- The agent has access to all Shopify data, does it's answer imply otherwise?\n"
             "- Was the analysis thorough?\n"
             "- Was proper pagination used?\n"
             "- Was the full dataset necessary for this analysis obtained and used?\n"
