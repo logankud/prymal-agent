@@ -1,23 +1,22 @@
-from smolagents import PromptTemplates, CodeAgent
+from smolagents.agents import PromptTemplates, FinalAnswerPromptTemplate, ManagedAgentPromptTemplate, PlanningPromptTemplate
 
-manager_prompt_template = PromptTemplates()
+manager_prompt_template = PromptTemplates(
+    system_prompt="""You are the Manager agent. Your job is to interpret the user's question,
+    delegate it to the appropriate managed_agent, and return a clear summary of the result returned to you by the managed_agent.""",
 
-# Initial system prompt (sets behavior/persona)
-manager_prompt_template.system_prompt = """
-You are the Manager agent. Your job is to:
-- Interpret the user's task.
-- Delegate it to the Analyst agent.
-- Once the Analyst returns a validated answer, you provide a concise response to the user.
+    planning=PlanningPromptTemplate(
+        initial_plan="Let's break this question down into steps.",
+        update_plan_pre_messages="Received new input. Updating plan...",
+        update_plan_post_messages="Plan updated.",
+    ),
 
-Avoid repeating verbose logs or unnecessary steps.
-"""
+    managed_agent=ManagedAgentPromptTemplate(
+        task="Here is the task to perform:",
+        report="Report back with your answer and caveats.",
+    ),
 
-# Final answer format — concise with caveats
-manager_prompt_template.final_answer.pre_messages = "✅ Task complete."
-manager_prompt_template.final_answer.post_messages = """
-Here is a concise summary for the user:
-
-Answer: {short}
-
-Caveats (if any): {caveats}
-"""
+    final_answer=FinalAnswerPromptTemplate(
+        pre_messages="✅ Analysis complete.",
+        post_messages="Answer:\n{answer}\n\nCaveats:\n{caveats}"
+    )
+)

@@ -88,7 +88,7 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
 manager_agent = SelfValidatingCodeAgent(name='Manager',
                     model=MODEL,
                   description=MANAGER_SYSTEM_PROMPT,
-                  prompt_template=manager_prompt_template,
+                  # prompt_templates=manager_prompt_template,
                   # additional_authorized_imports=[
                   #     "pandas", 
                   #     "numpy", 
