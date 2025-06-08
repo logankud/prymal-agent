@@ -7,19 +7,7 @@ from tools import run_shopify_query
 from utils import build_prompt_with_memory, analysis_validation
 from models.huggingface import HFTextGenModel
 from memory_utils import store_message, get_recent_history
-from phoenix.otel import register
-from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 from llm.huggingface_model import HFModel
-
-# Optional Phoenix tracing - only enable if Phoenix server is available
-try:
-    register(
-        endpoint="http://0.0.0.0:4317"
-    )
-    SmolagentsInstrumentor().instrument()
-    print("✅ Phoenix tracing enabled")
-except Exception as e:
-    print(f"⚠️ Phoenix tracing disabled (Phoenix server not available): {e}")
 
 # Set your OpenAI API key
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
