@@ -1,14 +1,30 @@
+#!/bin/bash
+echo "🔧 Starting setup..."
+
+# Install MCP package
+echo "📦 Installing Shopify MCP..."
 npm install @shopify/dev-mcp
 
-
-# Run SQL DDL to create tables if not exists
-psql -U $PGUSER -d $PGDATABASE -c "
+# Database setup with retry logic
+echo "🗄️ Setting up database..."
+for i in {1..5}; do
+    if psql -U "$PGUSER" -d "$PGDATABASE" -c "
 CREATE TABLE IF NOT EXISTS conversation_history (
     id SERIAL PRIMARY KEY,
-    session_id TEXT NOT NULL,            -- e.g., Slack user ID or channel ID
-    agent_name TEXT NOT NULL,            -- manager, developer, researcher, etc.
-    role TEXT NOT NULL,                  -- 'user' | 'assistant' | 'system'
+    session_id TEXT NOT NULL,
+    agent_name TEXT NOT NULL,
+    role TEXT NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-"
+SELECT 'Database setup successful' AS status;
+"; then
+        echo "✅ Database setup completed"
+        break
+    else
+        echo "⚠️ Database setup attempt $i failed, retrying..."
+        sleep 2
+    fi
+done
+
+echo "🔧 Setup complete"

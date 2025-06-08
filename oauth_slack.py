@@ -158,5 +158,11 @@ if __name__ == "__main__":
     # Create directories for OAuth stores
     os.makedirs("./slack_installations", exist_ok=True)
     os.makedirs("./slack_states", exist_ok=True)
-
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    
+    print("🚀 Starting Flask OAuth server on port 5000...")
+    try:
+        app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    except Exception as e:
+        print(f"❌ Failed to start Flask app: {e}")
+        import sys
+        sys.exit(1)
