@@ -159,10 +159,15 @@ if __name__ == "__main__":
     os.makedirs("./slack_installations", exist_ok=True)
     os.makedirs("./slack_states", exist_ok=True)
     
-    print("🚀 Starting Flask OAuth server on port 5000...")
+    print("🚀 Starting Flask OAuth server on 0.0.0.0:5000...")
+    print(f"Flask secret key set: {'Yes' if app.secret_key else 'No'}")
+    print(f"Slack client ID set: {'Yes' if client_id else 'No'}")
+    
     try:
-        app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+        app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
     except Exception as e:
         print(f"❌ Failed to start Flask app: {e}")
+        import traceback
+        traceback.print_exc()
         import sys
         sys.exit(1)
