@@ -178,7 +178,8 @@ if __name__ == "__main__":
     
     try:
         print("🔥 Flask server starting...")
-        app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
+        # Optimize for deployment health checks
+        app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False, threaded=True)
     except Exception as e:
         print(f"❌ Failed to start Flask app: {e}")
         import traceback
