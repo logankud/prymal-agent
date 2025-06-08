@@ -159,4 +159,4 @@ if __name__ == "__main__":
     os.makedirs("./slack_installations", exist_ok=True)
     os.makedirs("./slack_states", exist_ok=True)
 
-    app.run(host="0.0.0.0", port=4317, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
