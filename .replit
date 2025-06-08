@@ -41,10 +41,6 @@ task = "shell.exec"
 args = "python evaluate.py"
 
 [[ports]]
-localPort = 4317
-externalPort = 80
-
-[[ports]]
 localPort = 5000
 externalPort = 5000
 
