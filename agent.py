@@ -8,6 +8,7 @@ from utils import build_prompt_with_memory, analysis_validation
 from models.huggingface import HFTextGenModel
 from memory_utils import store_message, get_recent_history
 from llm.huggingface_model import HFModel
+from prompts.manager_prompt_template import manager_prompt_template
 
 # Set your OpenAI API key
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -87,6 +88,7 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
 manager_agent = SelfValidatingCodeAgent(name='Manager',
                     model=MODEL,
                   description=MANAGER_SYSTEM_PROMPT,
+                  prompt_template=manager_prompt_template,
                   # additional_authorized_imports=[
                   #     "pandas", 
                   #     "numpy", 
