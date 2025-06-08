@@ -1,13 +1,12 @@
-
-run = "python agent.py"
+run = "python start_deployment.py"
 modules = ["python-3.11", "postgresql-16", "nodejs-18.x"]
 
 [nix]
-channel = "stable-24_05"
+channel  = "stable-24_05"
 packages = ["bash", "glibcLocales", "libxcrypt", "libyaml", "nodejs"]
 
 [deployment]
-run = ["python", "start_deployment.py"]
+run   = ["python", "start_deployment.py"]
 build = ["sh", "-c", "bash setup.sh"]
 
 [workflows]
@@ -40,6 +39,3 @@ mode = "parallel"
 task = "shell.exec"
 args = "python evaluate.py"
 
-[[ports]]
-localPort = 5000
-externalPort = 80

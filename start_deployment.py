@@ -1,30 +1,34 @@
-#!/usr/bin/env python3
-import subprocess
-import sys
-import os
+    #!/usr/bin/env python3
+    """
+    Replit entry-point:
 
-def setup_database():
-    """Run database setup"""
-    try:
-        subprocess.run(["sh", "setup.sh"], check=True)
-        print("✅ Database setup completed")
-    except Exception as e:
-        print(f"⚠️ Database setup failed: {e}")
+    1. Runs `setup.sh` to create / migrate the Postgres DB.
+    2. Starts the Flask app **in-process** so Replit can detect the open port.
+    """
 
-def start_slack_oauth():
-    """Start the Slack OAuth server"""
-    try:
-        # Start the main application
-        subprocess.run(["python", "oauth_slack.py"], check=True)
-    except Exception as e:
-        print(f"❌ Slack OAuth server failed: {e}")
-        sys.exit(1)
+    import os
+    import subprocess
+    import sys
 
-if __name__ == "__main__":
-    print("🚀 Starting deployment...")
+    from oauth_slack import app  # import AFTER packages are installed
 
-    # Setup database first
-    setup_database()
 
-    # Start the main application
-    start_slack_oauth()
+    def setup_database() -> None:
+        try:
+            subprocess.run(["sh", "setup.sh"], check=True)
+            print("✅ Database setup completed")
+        except subprocess.CalledProcessError as exc:
+            print(f"⚠️  Database setup failed: {exc}", file=sys.stderr)
+
+
+    def main() -> None:
+        print("🚀 Bootstrapping Prymal Agent Copilot deployment…")
+        setup_database()
+
+        port = int(os.getenv("PORT", 5000))
+        print(f"🌐 Starting Flask on :{port}")
+        app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)
+
+
+    if __name__ == "__main__":
+        main()

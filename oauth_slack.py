@@ -1,51 +1,81 @@
 import os
+import sys
 import json
-from flask import Flask, request, jsonify, redirect, session, url_for
+from flask import Flask, request, jsonify
+
 from slack_sdk import WebClient
 from slack_sdk.signature import SignatureVerifier
-from slack_sdk.oauth import AuthorizeUrlGenerator, RedirectUriPageRenderer
+from slack_sdk.oauth import AuthorizeUrlGenerator
 from slack_sdk.oauth.installation_store import FileInstallationStore
 from slack_sdk.oauth.state_store import FileOAuthStateStore
+
 from agent import manager_agent
 from memory_utils import store_message, get_recent_history
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Flask app & basic config
+# ──────────────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")  # dev fallback
 
-# OAuth configuration
-client_id = os.environ.get("SLACK_CLIENT_ID")
-client_secret = os.environ.get("SLACK_CLIENT_SECRET")
-scopes = ["channels:history", "chat:write", "im:history", "im:write", "mpim:history", "mpim:write"]
+# Slack OAuth config
+client_id: str | None = os.getenv("SLACK_CLIENT_ID")
+client_secret: str | None = os.getenv("SLACK_CLIENT_SECRET")
+scopes = [
+    "channels:history",
+    "chat:write",
+    "im:history",
+    "im:write",
+    "mpim:history",
+    "mpim:write",
+]
 
-# OAuth stores
+# Local, file-based stores (swap for DB-backed stores in prod)
 installation_store = FileInstallationStore(base_dir="./slack_installations")
 state_store = FileOAuthStateStore(expiration_seconds=600, base_dir="./slack_states")
 
-# Initialize components
 authorize_url_generator = AuthorizeUrlGenerator(
     client_id=client_id,
     scopes=scopes,
-    user_scopes=[]
+    user_scopes=[],
 )
 
-signature_verifier = SignatureVerifier(os.environ.get("SLACK_SIGNING_SECRET"))
+signature_verifier = SignatureVerifier(os.getenv("SLACK_SIGNING_SECRET", ""))
 
-@app.route("/slack/install", methods=["GET"])
+# ──────────────────────────────────────────────────────────────────────────────
+# Utility routes
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route("/")
+def index():
+    return "Prymal Agent Copilot is alive! 🎉", 200
+
+
+@app.route("/health")
+def health():
+    return "OK", 200
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# OAuth flow
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route("/slack/install")
 def oauth_start():
-    """Start the OAuth flow"""
     state = state_store.issue()
     url = authorize_url_generator.generate(state=state)
-    return f'<a href="{url}"><img alt=""Add to Slack"" height="40" width="139" src="https://platform.slack-cdn.com/img/add_to_slack.png" srcset="https://platform.slack-cdn.com/img/add_to_slack.png 1x, https://platform.slack-cdn.com/img/add_to_slack@2x.png 2x" /></a>'
+    return (
+        f'<a href="{url}"><img alt="Add to Slack" height="40" width="139" '
+        f'src="https://platform.slack-edge.com/img/add_to_slack.png" '
+        f'srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, '
+        f'https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>'
+    )
 
-@app.route("/slack/oauth_redirect", methods=["GET"])
+
+@app.route("/slack/oauth_redirect")
 def oauth_callback():
-    """Handle OAuth callback"""
-    # Verify state parameter
     state = request.args.get("state")
-    if not state_store.consume(state):
+    if not state or not state_store.consume(state):
         return "Invalid state parameter", 400
 
-    # Exchange code for access token
     code = request.args.get("code")
     if not code:
         return "Authorization code not found", 400
@@ -55,134 +85,93 @@ def oauth_callback():
         oauth_response = client.oauth_v2_access(
             client_id=client_id,
             client_secret=client_secret,
-            code=code
+            code=code,
         )
-
-        # Store installation
         installation_store.save(oauth_response)
+        return "✅ Installation successful — you can now use the bot!"
+    except Exception as exc:
+        return f"OAuth failed: {exc}", 500
 
-        return "✅ Installation successful! You can now use the bot in your Slack workspace."
 
-    except Exception as e:
-        return f"OAuth error: {str(e)}", 500
-
+# ──────────────────────────────────────────────────────────────────────────────
+# Slack events (messages, slash commands, …)
+# ──────────────────────────────────────────────────────────────────────────────
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
-    """Handle Slack events with OAuth"""
-    # Verify request signature
-    if not signature_verifier.is_valid_request(request.get_data(), request.headers):
+    payload = request.get_json(force=True, silent=True) or {}
+
+    # URL-verification challenge
+    if "challenge" in payload:
+        return jsonify({"challenge": payload["challenge"]})
+
+    # Signature check
+    if not signature_verifier.is_valid_request(
+        body=request.get_data(),
+        timestamp=request.headers.get("X-Slack-Request-Timestamp"),
+        signature=request.headers.get("X-Slack-Signature"),
+    ):
         return "Invalid signature", 403
 
-    data = request.json
+    event = payload.get("event", {})
+    if event.get("type") == "message" and not event.get("bot_id"):
+        team_id = payload.get("team_id")
+        channel = event.get("channel")
+        user = event.get("user")
+        text = event.get("text", "")
 
-    # Handle URL verification challenge
-    if data.get("type") == "url_verification":
-        return data.get("challenge")
+        installation = installation_store.find_installation(
+            enterprise_id=payload.get("enterprise_id"), team_id=team_id
+        )
+        if not installation:
+            return "Bot not installed", 404
 
-    # Handle events
-    if data.get("type") == "event_callback":
-        event = data.get("event", {})
-        team_id = data.get("team_id")
+        slack_client = WebClient(token=installation.bot_token)
 
-        # Only respond to messages (not bot messages)
-        if event.get("type") == "message" and not event.get("bot_id"):
-            channel = event.get("channel")
-            user = event.get("user")
-            text = event.get("text", "")
+        # Memory — store user msg
+        session_id = f"slack_{team_id}_{channel}_{user}"
+        store_message(session_id, agent_name="user", role="user", message=text)
 
-            # Skip if no actual message
-            if not text.strip():
-                return "", 200
+        # Build prompt with recent history
+        recent = get_recent_history(session_id, limit=10)
+        history_txt = "\n".join(f"{m['role']}: {m['content']}" for m in recent)
+        prompt = (
+            "Recent chat history:\n"
+            f"{history_txt}\n\n"
+            "User input:\n"
+            f"{text}"
+        )
 
-            try:
-                # Get bot token from installation store
-                installation = installation_store.find_installation(
-                    enterprise_id=data.get("enterprise_id"),
-                    team_id=team_id
-                )
-
-                if not installation:
-                    return "Bot not installed", 404
-
-                bot_token = installation.bot_token
-                slack_client = WebClient(token=bot_token)
-
-                # Process the message with your agent
-                session_id = f"slack_{team_id}_{channel}_{user}"
-                store_message(session_id=session_id, agent_name='user', role='user', message=text)
-
-                # Get recent chat history
-                recent_chat_history = get_recent_history(session_id=session_id, limit=10)
-                recent_chat_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_chat_history])
-
-                # Build prompt with memory
-                prompt = f"""Recent chat history: \n
-                            {recent_chat_text} \n\n
-                            User Input: \n
-                            {text}
-                            """
-
-                # Get response from agent
-                reply = manager_agent.run(prompt)
-
-                # Store agent response
-                store_message(session_id=session_id, agent_name='Manager', role='agent', message=reply)
-
-                # Convert reply to string if needed
-                if isinstance(reply, dict):
-                    reply_text = json.dumps(reply, indent=2)
-                else:
-                    reply_text = str(reply)
-
-                # Send response back to Slack
-                slack_client.chat_postMessage(
-                    channel=channel,
-                    text=reply_text
-                )
-
-            except Exception as e:
-                print(f"Error processing message: {str(e)}")
-                if 'slack_client' in locals():
-                    slack_client.chat_postMessage(
-                        channel=channel,
-                        text=f"Sorry, I encountered an error: {str(e)}"
-                    )
+        # Run agent & reply
+        reply = manager_agent.run(prompt)
+        slack_client.chat_postMessage(channel=channel, text=reply)
+        store_message(session_id, agent_name="assistant", role="assistant", message=reply)
 
     return "", 200
 
-@app.route("/health", methods=["GET"])
-def health_check():
-    return "OK", 200
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Boot
+# ──────────────────────────────────────────────────────────────────────────────
+def _validate_env() -> None:
+    required = [
+        "FLASK_SECRET_KEY",
+        "SLACK_CLIENT_ID",
+        "SLACK_CLIENT_SECRET",
+        "SLACK_SIGNING_SECRET",
+    ]
+    missing = [v for v in required if not os.getenv(v)]
+    if missing:
+        print(f"❌ Missing env vars: {', '.join(missing)}", file=sys.stderr)
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    # Create directories for OAuth stores
+    _validate_env()
+
+    # Ensure file-based stores have somewhere to write
     os.makedirs("./slack_installations", exist_ok=True)
     os.makedirs("./slack_states", exist_ok=True)
-    
-    # Environment validation
-    required_vars = ["FLASK_SECRET_KEY", "SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET", "SLACK_SIGNING_SECRET"]
-    missing_vars = [var for var in required_vars if not os.environ.get(var)]
-    
-    if missing_vars:
-        print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
-        print("Please set these in your Replit Secrets")
-        import sys
-        sys.exit(1)
-    
-    print("🚀 Starting Flask OAuth server...")
-    print(f"Host: 0.0.0.0")
-    print(f"Port: 5000")
-    print(f"Flask secret key: {'✅ Set' if app.secret_key else '❌ Missing'}")
-    print(f"Slack client ID: {'✅ Set' if client_id else '❌ Missing'}")
-    print(f"Database connection: {'✅ Ready' if os.environ.get('PGHOST') else '❌ Not configured'}")
-    
-    try:
-        print("🔥 Flask server starting...")
-        # Optimize for deployment health checks
-        app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False, threaded=True)
-    except Exception as e:
-        print(f"❌ Failed to start Flask app: {e}")
-        import traceback
-        traceback.print_exc()
-        import sys
-        sys.exit(1)
+
+    port = int(os.getenv("PORT", 5000))
+    print("🚀  Starting Flask on port", port)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)
