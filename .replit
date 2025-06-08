@@ -7,7 +7,7 @@ channel = "stable-24_05"
 packages = ["bash", "glibcLocales", "libxcrypt", "libyaml", "nodejs"]
 
 [deployment]
-run = ["sh", "-c", "python oauth_slack.py"]
+run = ["python", "start_deployment.py"]
 build = ["sh", "-c", "bash setup.sh"]
 
 [workflows]
