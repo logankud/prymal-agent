@@ -14,6 +14,7 @@ def analysis_validation(model):
             f"The agent has produced the following answer:\n\n{answer}\n\n"
             "Please review this answer for the following criteria:\n"
             "- Did the analysis generate an answer or was an answer made up (or hardcoded) in order to explain how to acheive the answer?\n"
+            "- Was actual code used to generate the answer?\n"
             "- Was the analysis thorough?\n"
             "- Was proper pagination used?\n"
             "- Was the full dataset necessary for this analysis obtained and used?\n"
@@ -26,7 +27,7 @@ def analysis_validation(model):
         feedback = response.content.strip()
 
         print("Checklist feedback:", feedback)
-        if "FAIL" in feedback:
+        if "**FAIL**" in feedback:
             raise Exception(feedback)
         return True
 
