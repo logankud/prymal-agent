@@ -4,6 +4,9 @@ import os
 from difflib import SequenceMatcher
 from termcolor import colored
 from datetime import datetime
+from sentence_transformers import SentenceTransformer, util
+
+
 
 # Import the actual agent from agent.py
 from agent import manager_agent
@@ -13,7 +16,25 @@ def load_eval_questions(file_path: str):
         return json.load(f)
 
 def similarity(a: str, b: str) -> float:
-    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+    """Compute similarity between two strings using Sentence Transformers.
+
+    Args:
+        a (str): The first string.
+        b (str): The second string.
+
+    Returns:    
+        float: The similarity score between the two strings.
+    
+    """
+
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+    embedding1 = model.encode(a, convert_to_tensor=True)
+    embedding2 = model.encode(b, convert_to_tensor=True)
+
+    # Compute cosine similarity between the embeddings
+    cosine_sim = util.cos_sim(embedding1, embedding2)
+    return cosine_sim.item()
 
 def save_evaluation_results(results, file_path="eval/evaluation_results.json"):
     """Save evaluation results with timestamp for tracking"""

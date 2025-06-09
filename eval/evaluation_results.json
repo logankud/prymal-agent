@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-06-09T23:58:28.049976",
+  "total_questions": 3,
+  "passed": 0,
+  "accuracy": 0.0,
+  "results": [
+    {
+      "question_id": 1,
+      "question": "How many orders were placed on 2025-05-25?",
+      "ground_truth": "76",
+      "agent_response": null,
+      "error": "'dict' object has no attribute 'lower'",
+      "similarity_score": 0.0,
+      "pass": false,
+      "threshold": 0.85
+    },
+    {
+      "question_id": 2,
+      "question": "What product sold the most on 2025-05-25?",
+      "ground_truth": "Salted Caramel",
+      "agent_response": null,
+      "error": "'dict' object has no attribute 'lower'",
+      "similarity_score": 0.0,
+      "pass": false,
+      "threshold": 0.85
+    },
+    {
+      "question_id": 3,
+      "question": "Who was the top customer by total value in May 2025?",
+      "ground_truth": "John Smith",
+      "agent_response": null,
+      "error": "'dict' object has no attribute 'lower'",
+      "similarity_score": 0.0,
+      "pass": false,
+      "threshold": 0.85
+    }
+  ]
+}
