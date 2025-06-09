@@ -39,3 +39,6 @@ mode = "parallel"
 task = "shell.exec"
 args = "python evaluate.py"
 
+[[ports]]
+localPort = 5000
+externalPort = 80
