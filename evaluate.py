@@ -1,8 +1,11 @@
+
 import json
+import os
 from difflib import SequenceMatcher
 from termcolor import colored
+from datetime import datetime
 
-# Update this import to match the correct path in your repo
+# Import the actual agent from agent.py
 from agent import manager_agent
 
 def load_eval_questions(file_path: str):
@@ -11,6 +14,23 @@ def load_eval_questions(file_path: str):
 
 def similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
+def save_evaluation_results(results, file_path="eval/evaluation_results.json"):
+    """Save evaluation results with timestamp for tracking"""
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    
+    evaluation_data = {
+        "timestamp": datetime.now().isoformat(),
+        "total_questions": len(results),
+        "passed": sum(1 for r in results if r.get("pass", False)),
+        "accuracy": sum(1 for r in results if r.get("pass", False)) / len(results) * 100 if results else 0,
+        "results": results
+    }
+    
+    with open(file_path, "w") as f:
+        json.dump(evaluation_data, f, indent=2)
+    
+    print(colored(f"📊 Results saved to {file_path}", "blue"))
 
 def evaluate_agent(eval_questions, threshold=0.85):
     results = []
@@ -22,44 +42,64 @@ def evaluate_agent(eval_questions, threshold=0.85):
         print(colored(f"\n[Q{idx+1}] {question}", "cyan"))
 
         try:
-            response = manager_agent.run(question)
+            # Use the manager agent from agent.py
+            agent_response = manager_agent.run(question)
+            
+            # Store the response for tracking
+            score = similarity(agent_response, ground_truth)
+            passed = score >= threshold
+
+            print(colored(f"Agent Response: {agent_response}", "green"))
+            print(colored(f"Ground Truth:   {ground_truth}", "yellow"))
+            print(colored(f"Similarity:     {score:.2f}", "magenta"))
+            print(colored(f"Pass:           {'✅' if passed else '❌'}", "white"))
+
+            results.append({
+                "question_id": idx + 1,
+                "question": question,
+                "ground_truth": ground_truth,
+                "agent_response": agent_response,  # Store the actual agent response
+                "similarity_score": score,
+                "pass": passed,
+                "threshold": threshold
+            })
+
         except Exception as e:
             print(colored(f"Error running agent: {e}", "red"))
             results.append({
+                "question_id": idx + 1,
                 "question": question,
+                "ground_truth": ground_truth,
+                "agent_response": None,
                 "error": str(e),
-                "score": 0.0,
-                "pass": False
+                "similarity_score": 0.0,
+                "pass": False,
+                "threshold": threshold
             })
-            continue
-
-        score = similarity(response, ground_truth)
-        passed = score >= threshold
-
-        print(colored(f"Agent Response: {response}", "green"))
-        print(colored(f"Ground Truth:   {ground_truth}", "yellow"))
-        print(colored(f"Similarity:     {score:.2f}", "magenta"))
-        print(colored(f"Pass:           {'✅' if passed else '❌'}", "white"))
-
-        results.append({
-            "question": question,
-            "ground_truth": ground_truth,
-            "agent_response": response,
-            "score": score,
-            "pass": passed
-        })
 
     return results
 
 if __name__ == "__main__":
-    questions_path = "eval/eval_questions.json"  # path to evaluation questions & answers
+    questions_path = "eval/eval_questions.json"
     eval_questions = load_eval_questions(questions_path)
 
     print(colored(f"\n🔍 Running Evaluation on {len(eval_questions)} Questions...\n", "blue"))
+    print(colored(f"Using Manager Agent from agent.py", "blue"))
+    
     results = evaluate_agent(eval_questions)
 
-    passed = sum(1 for r in results if r["pass"])
+    # Calculate summary stats
+    passed = sum(1 for r in results if r.get("pass", False))
     total = len(results)
-    accuracy = passed / total * 100
+    accuracy = passed / total * 100 if total > 0 else 0
 
     print(colored(f"\n✅ Eval Complete: {passed}/{total} passed ({accuracy:.1f}%)\n", "blue"))
+    
+    # Save results for tracking
+    save_evaluation_results(results)
+    
+    # Print summary of agent responses for review
+    print(colored("\n📋 Agent Response Summary:", "blue"))
+    for result in results:
+        status = "✅ PASS" if result.get("pass", False) else "❌ FAIL"
+        print(colored(f"Q{result['question_id']}: {status} (Score: {result.get('similarity_score', 0):.2f})", "white"))
