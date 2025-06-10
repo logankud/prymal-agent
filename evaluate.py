@@ -53,8 +53,17 @@ def save_evaluation_results(results, file_path="eval/evaluation_results.json"):
     
     print(colored(f"📊 Results saved to {file_path}", "blue"))
 
+def save_live_responses(live_responses, file_path="eval/live_responses.json"):
+    """Save live responses as they are generated"""
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, "w") as f:
+        json.dump(live_responses, f, indent=2)
+
 def evaluate_agent(eval_questions, threshold=0.85):
     results = []
+    live_responses = {}  # Dictionary to track responses in real-time
+    
+    print(colored("📝 Live responses will be saved to eval/live_responses.json", "blue"))
 
     for idx, item in enumerate(eval_questions):
         question = item["question"]
@@ -75,19 +84,31 @@ def evaluate_agent(eval_questions, threshold=0.85):
             print(colored(f"Similarity:     {score:.2f}", "magenta"))
             print(colored(f"Pass:           {'✅' if passed else '❌'}", "white"))
 
-            results.append({
+            # Create result object
+            result = {
                 "question_id": idx + 1,
                 "question": question,
                 "ground_truth": ground_truth,
                 "agent_response": agent_response,  # Store the actual agent response
                 "similarity_score": score,
                 "pass": passed,
-                "threshold": threshold
-            })
+                "threshold": threshold,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            results.append(result)
+            
+            # Update live responses dict and save immediately
+            live_responses[f"question_{idx + 1}"] = result
+            save_live_responses(live_responses)
+            
+            print(colored(f"💾 Response {idx + 1} saved to live_responses.json", "cyan"))
 
         except Exception as e:
             print(colored(f"Error running agent: {e}", "red"))
-            results.append({
+            
+            # Create error result
+            error_result = {
                 "question_id": idx + 1,
                 "question": question,
                 "ground_truth": ground_truth,
@@ -95,8 +116,17 @@ def evaluate_agent(eval_questions, threshold=0.85):
                 "error": str(e),
                 "similarity_score": 0.0,
                 "pass": False,
-                "threshold": threshold
-            })
+                "threshold": threshold,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            results.append(error_result)
+            
+            # Update live responses dict and save immediately
+            live_responses[f"question_{idx + 1}"] = error_result
+            save_live_responses(live_responses)
+            
+            print(colored(f"💾 Error response {idx + 1} saved to live_responses.json", "cyan"))
 
     return results
 
@@ -106,6 +136,7 @@ if __name__ == "__main__":
 
     print(colored(f"\n🔍 Running Evaluation on {len(eval_questions)} Questions...\n", "blue"))
     print(colored(f"Using Manager Agent from agent.py", "blue"))
+    print(colored(f"Progress will be saved in real-time to eval/live_responses.json", "blue"))
     
     results = evaluate_agent(eval_questions)
 
@@ -124,3 +155,6 @@ if __name__ == "__main__":
     for result in results:
         status = "✅ PASS" if result.get("pass", False) else "❌ FAIL"
         print(colored(f"Q{result['question_id']}: {status} (Score: {result.get('similarity_score', 0):.2f})", "white"))
+    
+    print(colored(f"\n💾 Live responses tracked in: eval/live_responses.json", "blue"))
+    print(colored(f"📊 Final results saved in: eval/evaluation_results.json", "blue"))
