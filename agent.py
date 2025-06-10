@@ -22,8 +22,8 @@ if not OPENAI_API_KEY:
 # ----------------------------------------
 
 
-# Custom class for self-validating agents
-class SelfValidatingCodeAgent(CodeAgent):
+# Custom class for self-validating Analyst agents
+class AnalystAgent(CodeAgent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.final_answer_checks = [analysis_validation(self.model)]
@@ -42,7 +42,7 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",
 
 
 # Instantiate agent
-analyst_agent = SelfValidatingCodeAgent(name='Analyst',
+analyst_agent = AnalystAgent(name='Analyst',
                     model=MODEL,
                   description=ANALYST_SYSTEM_PROMPT,
                   # additional_authorized_imports=[
@@ -99,6 +99,7 @@ manager_agent = CodeAgent(name='Manager',
                   # ],
                   tools=[],
                   managed_agents=[analyst_agent],
+                          
                   # final_answer_checks=True  # validates final answers from managed agents
                          )
 

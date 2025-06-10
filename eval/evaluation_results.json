@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-06-09T23:58:28.049976",
+  "timestamp": "2025-06-10T00:26:24.454067",
   "total_questions": 3,
   "passed": 0,
   "accuracy": 0.0,
@@ -7,32 +7,34 @@
     {
       "question_id": 1,
       "question": "How many orders were placed on 2025-05-25?",
-      "ground_truth": "76",
+      "ground_truth": "107",
       "agent_response": null,
-      "error": "'dict' object has no attribute 'lower'",
+      "error": "np.int64(1)",
       "similarity_score": 0.0,
       "pass": false,
-      "threshold": 0.85
+      "threshold": 0.85,
+      "timestamp": "2025-06-10T00:15:44.528393"
     },
     {
       "question_id": 2,
-      "question": "What product sold the most on 2025-05-25?",
-      "ground_truth": "Salted Caramel",
-      "agent_response": null,
-      "error": "'dict' object has no attribute 'lower'",
-      "similarity_score": 0.0,
+      "question": "What product sold the most on 2025-04-15",
+      "ground_truth": "Kitchen Sink Cookie - Large Bag",
+      "agent_response": "1. Task outcome (short version):\nOn 2025-04-15, the product that recorded the highest sales by units sold was 'Nutella Latte', with a total of 40 units sold.\n\n2. Task outcome (extremely detailed version):\nTo determine the product with the highest unit sales on 2025-04-15, the Shopify Admin API was queried for all orders created on that day, filtering in the 'orders' GraphQL query by date. From each order, all line items were extracted, including their associated product IDs, titles, and quantities. These values were aggregated by product ID and title to ensure each product's results were distinct.\n\nResults:\n- 'Nutella Latte' (Product ID: gid://shopify/Product/6868514111566) recorded a total of 40 units sold, making it the top-selling product by units for the day.\n- The next highest by units was 'Butter Pecan' with 38 units, followed by 'French Vanilla' (26), 'Cacao Mocha' (23), and 'Salted Caramel' (20).\n\nSource and method:\n- Data was sourced using the Shopify Admin GraphQL API, retrieving all orders for 2025-04-15 and aggregating their line item details.\n- Aggregation was by product ID to avoid ambiguity in case product titles overlap.\n- The 'hasNextPage: False' result in the pagination info confirmed that all orders for the day were captured, ensuring completeness.\n\nCaveats and limitations:\n- The calculation is strictly by units sold and does not incorporate any returned or refunded items.\n- Only completed (created) orders are included; draft or canceled orders are excluded.\n- If sales by revenue are required, aggregation should be done based on pricing, not units.\n- This analysis assumes product units are directly comparable; bundles and kits were aggregated by their own product IDs.\n\n3. Additional context (if relevant):\nFull aggregation for context:\n{'Nutella Latte': 40, 'Butter Pecan': 38, 'French Vanilla': 26, 'Cacao Mocha': 23, 'Salted Caramel': 20, 'Cinnamon Dolce': 29, 'Birthday Cake': 13, 'Kickstart Bundle': 10, 'White Chocolate Mocha': 17, 'Cinnamon Pecan Coffee Beans': 3, 'Italian Sweet Cream': 4, 'Original': 4, 'Gingerbread Cookie Coffee Beans': 2, 'Ltd Offer Kickstart Bundle': 2, 'Sustainable Wooden Measuring Spoon': 2, 'Hazelnut Mocha Coffee Beans': 1}.\nAll data was derived directly from the Shopify platform via API queries on finalized orders for 2025-04-15.",
+      "similarity_score": 0.1408582329750061,
       "pass": false,
-      "threshold": 0.85
+      "threshold": 0.85,
+      "timestamp": "2025-06-10T00:18:16.290057"
     },
     {
       "question_id": 3,
-      "question": "Who was the top customer by total value in May 2025?",
-      "ground_truth": "John Smith",
+      "question": "What was the returning customer rate for all of May 2025?",
+      "ground_truth": "65.22%",
       "agent_response": null,
-      "error": "'dict' object has no attribute 'lower'",
+      "error": "Error in generating model output:\nError code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
       "similarity_score": 0.0,
       "pass": false,
-      "threshold": 0.85
+      "threshold": 0.85,
+      "timestamp": "2025-06-10T00:26:24.453502"
     }
   ]
 }
