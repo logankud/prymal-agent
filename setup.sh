@@ -1,13 +1,10 @@
 #!/bin/bash
 echo "🔧 Starting setup..."
 
-# Check if we're in deployment mode (skip MCP in deployment)
-if [ "$REPL_DEPLOYMENT" != "1" ]; then
-    echo "📦 Installing Shopify MCP..."
-    npm install @shopify/dev-mcp
-else
-    echo "📦 Skipping MCP installation in deployment mode"
-fi
+# Install MCP 
+echo "📦 Installing Shopify MCP..."
+npm install @shopify/dev-mcp
+
 
 # Database setup with retry logic
 echo "🗄️ Setting up database..."
