@@ -8,14 +8,26 @@ import sys
 class ShopifyMCPClient:
     def __init__(self):
         """Launch the Dev-MCP subprocess and perform handshake."""
-        self.process = subprocess.Popen(
-            ['npx', '-y', '@shopify/dev-mcp@latest'],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1
-        )
+        # Try local installation first, then fallback to remote
+        try:
+            self.process = subprocess.Popen(
+                ['npx', '@shopify/dev-mcp'],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
+            )
+        except (subprocess.SubprocessError, FileNotFoundError):
+            # Fallback to remote installation
+            self.process = subprocess.Popen(
+                ['npx', '-y', '@shopify/dev-mcp@latest'],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
+            )
         self._log_stderr()
         self._initialize()
 

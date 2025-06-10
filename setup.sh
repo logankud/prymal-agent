@@ -1,9 +1,9 @@
 #!/bin/bash
 echo "🔧 Starting setup..."
 
-# Install MCP 
+# Install MCP for both development and deployment
 echo "📦 Installing Shopify MCP..."
-npm install @shopify/dev-mcp
+npm install
 
 
 # Database setup with retry logic

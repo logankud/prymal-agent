@@ -21,10 +21,25 @@ def setup_database() -> None:
     except subprocess.CalledProcessError as exc:
         print(f"⚠️  Database setup failed: {exc}", file=sys.stderr)
 
+def verify_mcp_installation() -> None:
+    """Verify MCP server can be launched in deployment environment"""
+    try:
+        # Quick test to see if MCP is available
+        result = subprocess.run(['npx', '@shopify/dev-mcp', '--version'], 
+                              capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            print("✅ MCP server available in deployment")
+        else:
+            print("⚠️ MCP server may not be fully functional")
+    except Exception as e:
+        print(f"⚠️ MCP verification failed: {e}")
+        # Don't fail deployment for MCP issues
+
 
 def main() -> None:
     print("🚀 Bootstrapping Prymal Agent Copilot deployment…")
     setup_database()
+    verify_mcp_installation()
 
     port = int(os.getenv("PORT", 5000))
     print(f"🌐 Starting Flask on :{port}")
