@@ -88,7 +88,8 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
 manager_agent = CodeAgent(name='Manager',
                     model=MODEL,
                   description=MANAGER_SYSTEM_PROMPT,
-                  prompt_templates=manager_prompt_template,
+                  # prompt_templates=manager_prompt_template,
+                          
                   # additional_authorized_imports=[
                   #     "pandas", 
                   #     "numpy", 
