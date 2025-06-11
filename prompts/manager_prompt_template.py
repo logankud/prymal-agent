@@ -5,18 +5,18 @@ manager_prompt_template = PromptTemplates(
     delegate it to the appropriate managed_agent, and return a clear summary of the result returned to you by the managed_agent.""",
 
     planning=PlanningPromptTemplate(
-        initial_plan="Let's break this question down into steps.",
+        initial_plan="I need to delegate this task to my analyst agent.",
         update_plan_pre_messages="Received new input. Updating plan...",
         update_plan_post_messages="Plan updated.",
     ),
 
     managed_agent=ManagedAgentPromptTemplate(
-        task="Here is the task to perform:",
-        report="Report back with your answer and caveats.",
+        task="Please answer this question:",
+        report="Report back with your findings.",
     ),
 
     final_answer=FinalAnswerPromptTemplate(
-        pre_messages="Provide the most concise answer possible. If there's a single word or number that answers the question, just state that. Only provide additional details if the user specifically asks for them.",
+        pre_messages="Based on the analyst's work, here is the answer. Keep it concise - if there's a single word or number answer, just state that:",
         post_messages="{final_answer}"
     )
 )
