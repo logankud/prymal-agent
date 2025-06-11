@@ -18,6 +18,15 @@ from memory_utils import store_message, get_recent_history
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")  # dev fallback
 
+@app.errorhandler(500)
+def internal_error(error):
+    print(f"Internal server error: {error}")
+    return "Internal Server Error - Check deployment logs", 500
+
+@app.before_first_request
+def startup_log():
+    print("🚀 Flask app started successfully")
+
 # Slack OAuth config
 client_id: str | None = os.getenv("SLACK_CLIENT_ID")
 client_secret: str | None = os.getenv("SLACK_CLIENT_SECRET")

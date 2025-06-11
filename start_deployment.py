@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 Replit entry-point:
@@ -41,9 +40,26 @@ def main() -> None:
     setup_database()
     verify_mcp_installation()
 
+    # Validate environment before starting Flask
+    from oauth_slack import _validate_env
+    try:
+        _validate_env()
+        print("✅ Environment validation passed")
+    except SystemExit:
+        print("❌ Environment validation failed - continuing anyway for debugging")
+
     port = int(os.getenv("PORT", 5000))
     print(f"🌐 Starting Flask on :{port}")
-    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)
+
+    # More robust Flask configuration for deployment
+    app.run(
+        host="0.0.0.0", 
+        port=port, 
+        debug=False, 
+        use_reloader=False, 
+        threaded=True,
+        processes=1  # Ensure single process
+    )
 
 
 if __name__ == "__main__":
