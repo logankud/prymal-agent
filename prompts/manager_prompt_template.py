@@ -57,7 +57,7 @@ You're helping your manager solve a wider task: so make sure to not provide a on
 
 Your final_answer MUST contain:
 ### 1. Task outcome (short version)
-### 2. Task outcome (extremely detailed version)
+### 2. Task outcome (extremely detailed version, including any code used and any intermediate steps)
 ### 3. Additional context (if relevant)
 
 Put all these in your final_answer tool.""",
@@ -67,9 +67,7 @@ Put all these in your final_answer tool.""",
 
     final_answer=FinalAnswerPromptTemplate(
         pre_messages="""An agent tried to answer a user query but it got stuck and failed to do so. You are tasked with providing an answer instead. Here is the agent's memory:""",
-        post_messages="""Based on the above, please provide an answer to the following user task:
-{{task}}
-    
-    Please answer as concisely as possible - if the user task can be answered with a single word or single number, do so.  The user will ask for more information if needed."""
+        post_messages="""Based on the above, please summarize provide an answer to the user task.  Please answer as concisely as possible - if the user task can be answered with a single word or single number, do so.  The user will ask for more information if needed.  Here is the user task:
+{{task}}"""
     )
 )
