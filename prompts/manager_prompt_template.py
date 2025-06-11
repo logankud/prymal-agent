@@ -16,7 +16,7 @@ manager_prompt_template = PromptTemplates(
     ),
 
     final_answer=FinalAnswerPromptTemplate(
-        pre_messages="✅ Analysis complete.",
-        post_messages="Answer:\n{answer}\n\nCaveats:\n{caveats}"
+        pre_messages="Provide the most concise answer possible. If there's a single word or number that answers the question, just state that. Only provide additional details if the user specifically asks for them.",
+        post_messages="{answer}"
     )
 )
