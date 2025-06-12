@@ -15,7 +15,8 @@ st.set_page_config(
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "session_id" not in st.session_state:
-    st.session_state.session_id = f"streamlit_{hash(str(st.experimental_user))}"
+    import uuid
+    st.session_state.session_id = f"streamlit_{str(uuid.uuid4())[:8]}"
 
 # Page header
 st.title("🤖 AI Agent Chat Interface")
@@ -85,12 +86,20 @@ User Input:
                 })
                 
             except Exception as e:
-                error_message = f"Sorry, I encountered an error: {str(e)}"
+                # Handle specific torch-related errors
+                if "torch" in str(e).lower() or "event loop" in str(e).lower():
+                    error_message = "I'm experiencing a technical issue. Please try refreshing the page or restarting the chat."
+                else:
+                    error_message = f"Sorry, I encountered an error: {str(e)}"
+                
                 st.error(error_message)
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": error_message
                 })
+                
+                # Log the full error for debugging
+                st.write("Debug info:", str(e))
 
 # Sidebar with info
 with st.sidebar:

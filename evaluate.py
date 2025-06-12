@@ -4,7 +4,6 @@ import os
 from difflib import SequenceMatcher
 from termcolor import colored
 from datetime import datetime
-from sentence_transformers import SentenceTransformer, util
 
 
 
@@ -26,6 +25,13 @@ def similarity(a: str, b: str) -> float:
         float: The similarity score between the two strings.
     
     """
+    # Lazy import to avoid torch conflicts with Streamlit
+    try:
+        from sentence_transformers import SentenceTransformer, util
+    except ImportError:
+        # Fallback to simple string similarity if sentence-transformers unavailable
+        from difflib import SequenceMatcher
+        return SequenceMatcher(None, a, b).ratio()
 
     model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
