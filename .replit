@@ -19,7 +19,7 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python agent.py"
+args = "python main.py"
 
 [[workflows.workflow]]
 name = "Run OAuth Slackbot"

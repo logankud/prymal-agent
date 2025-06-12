@@ -51,7 +51,7 @@ This application provides a conversational AI interface for analyzing Shopify st
 ### Running the Agent
 ```bash
 # Start the conversational agent
-python agent.py
+python main.py
 
 # Or run Slack OAuth server
 python oauth_slack.py
@@ -105,7 +105,7 @@ Switch models by modifying the `MODEL` configuration in `agent.py`.
 
 ## File Structure
 
-- `agent.py` - Main agent orchestration and chat interface
+- `main.py` - Main agent orchestration and chat interface
 - `oauth_slack.py` - Slack OAuth and messaging server
 - `tools/` - Shopify integration and analysis tools
 - `prompts/` - Agent system prompts and templates

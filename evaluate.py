@@ -135,7 +135,7 @@ if __name__ == "__main__":
     eval_questions = load_eval_questions(questions_path)
 
     print(colored(f"\n🔍 Running Evaluation on {len(eval_questions)} Questions...\n", "blue"))
-    print(colored(f"Using Manager Agent from agent.py", "blue"))
+    print(colored(f"Using Manager Agent from main.py", "blue"))
     print(colored(f"Progress will be saved in real-time to eval/live_responses.json", "blue"))
     
     results = evaluate_agent(eval_questions)

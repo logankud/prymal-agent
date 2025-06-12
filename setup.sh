@@ -1,4 +1,3 @@
-
 #!/bin/bash
 set -e
 echo "🔧 Starting comprehensive deployment setup..."
@@ -155,16 +154,16 @@ sys.path.append('.')
 try:
     # Test core imports
     from memory_utils import get_db_connection, store_message
-    from agent import manager_agent
+    from main import manager_agent
     from oauth_slack import app
-    
+
     # Test database connection
     conn = get_db_connection()
     conn.close()
-    
+
     print('✅ All core modules importable')
     print('✅ Database connection functional')
-    
+
 except Exception as e:
     print(f'❌ Core module test failed: {e}')
     sys.exit(1)
