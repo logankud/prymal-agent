@@ -4,7 +4,7 @@ import yaml
 from smolagents import CodeAgent, ToolCallingAgent, OpenAIServerModel, InferenceClientModel
 from tools.shopify_mcp import search_shopify_docs, introspect_shopify_schema
 from tools import run_shopify_query
-from utils import build_prompt_with_memory, analysis_validation
+from utils import build_prompt_with_memory, analyst_validation, manager_validation
 from models.huggingface import HFTextGenModel
 from memory_utils import store_message, get_recent_history
 from llm.huggingface_model import HFModel
@@ -26,7 +26,7 @@ if not OPENAI_API_KEY:
 class AnalystAgent(CodeAgent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.final_answer_checks = [analysis_validation(self.model)]
+        self.final_answer_checks = [analyst_validation(self.model)]
 
 
 # Analyst Agent
@@ -42,6 +42,13 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",
 
 
 # Instantiate agent
+
+# Custom class for self-validating Analyst agents
+class AnalystAgent(CodeAgent):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.final_answer_checks = [analyst_validation(self.model)]
+        
 analyst_agent = AnalystAgent(name='Analyst',
                     model=MODEL,
                   description=ANALYST_SYSTEM_PROMPT,
@@ -84,8 +91,14 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
 # )
 
 
+# Custom class for self-validating Analyst agents
+class ManagerAgent(CodeAgent):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.final_answer_checks = [manager_validation(self.model)]
+
 # Instantiate agent
-manager_agent = CodeAgent(name='Manager',
+manager_agent = ManagerAgent(name='Manager',
                     model=MODEL,
                   description=MANAGER_SYSTEM_PROMPT,
                   # prompt_templates=manager_prompt_template,

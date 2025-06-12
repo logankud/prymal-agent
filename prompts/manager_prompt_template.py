@@ -67,7 +67,7 @@ Put all these in your final_answer tool.""",
 
     final_answer=FinalAnswerPromptTemplate(
         pre_messages="""An agent tried to answer a user query but it got stuck and failed to do so. You are tasked with providing an answer instead. Here is the agent's memory:""",
-        post_messages="""Based on the above, please provide an answer to the following user task:
+        post_messages="""Please use the short version to summarize and provide as concise an answer as possible to the following user task:
 {{task}}"""
     )
 )

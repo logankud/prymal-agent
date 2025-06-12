@@ -7,8 +7,29 @@ from smolagents import ActionStep
 from memory_utils import store_message
 
 
+def manager_validation(model):
+    def validate_final_answer(answer: str, memory) -> bool:
+        prompt = (
+            f"The agent has produced the following answer:\n\n{answer}\n\n"
+            "Please review this answer for the following criteria:\n"
+            "- Was the user question answered?\n"
+            "- Is the answer to the user's question as concise as possible?\n"
+            "- If the user's question can be answered with a single word or a single number, that should be the answer.  If possible, was that the case?\n"
+            "- Was a managed agent used to answer the question (if applicable)?\n"
+            "List your reasoning. If no answer was provided, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
+        )
+        messages = [{"role": "user", "content": prompt}]
+        response = model(messages)
+        feedback = response.content.strip()
 
-def analysis_validation(model):
+        print("Checklist feedback:", feedback)
+        if "**FAIL**" in feedback:
+            raise Exception(feedback)
+        return True
+
+    return validate_final_answer
+
+def analyst_validation(model):
     def validate_final_answer(answer: str, memory) -> bool:
         prompt = (
             f"The agent has produced the following answer:\n\n{answer}\n\n"
