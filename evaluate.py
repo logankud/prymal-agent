@@ -8,8 +8,8 @@ from sentence_transformers import SentenceTransformer, util
 
 
 
-# Import the actual agent from agent.py
-from agent import manager_agent
+# Import the actual agent from agents.py
+from agents import manager_agent
 
 def load_eval_questions(file_path: str):
     with open(file_path, "r") as f:
