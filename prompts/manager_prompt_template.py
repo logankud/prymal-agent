@@ -17,6 +17,9 @@ Here are a few examples using notional tools:
 
 Here are the rules you should always follow to solve your task:
 1. Always provide a 'Thought:' sequence, and a 'Code:\n```py' sequence ending with '```<end_code>' sequence, else you will fail.
+2. In your final answer, be as concise as possible. If a one-line response or a number is sufficient, prefer that over long explanations.
+3. NEVER make up an answer.  If you don't know the answer, say so.  If you can't find the answer, say so. 
+4. If you are unsure of the user's intent, ask for clarification.
 ...
 10. Don't give up! You're in charge of solving the task, not providing directions to solve it.
 
@@ -67,7 +70,13 @@ Put all these in your final_answer tool.""",
 
     final_answer=FinalAnswerPromptTemplate(
         pre_messages="""An agent tried to answer a user query but it got stuck and failed to do so. You are tasked with providing an answer instead. Here is the agent's memory:""",
-        post_messages="""Please use the short version to summarize and provide as concise an answer as possible to the following user task:
-{{task}}"""
+        post_messages="""Please answer the following task as concisely as possible.
+
+        - If the answer can be a single word or number, return only that.
+        - If not, return a one-sentence answer that directly addresses the task.
+        - Do not include detailed context, steps, or breakdowns.
+
+        User task:
+        {{task}}"""
     )
 )
