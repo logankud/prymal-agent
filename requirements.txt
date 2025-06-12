@@ -16,3 +16,8 @@ pyyaml
 slack-sdk
 flask
 slack-sdk
+agent
+sentence-transformers
+streamlit
+termcolor
+streamlit

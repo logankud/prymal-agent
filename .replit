@@ -6,7 +6,7 @@ channel  = "stable-24_05"
 packages = ["bash", "glibcLocales", "libxcrypt", "libyaml", "nodejs"]
 
 [deployment]
-run   = ["python", "start_deployment.py"]
+run = ["sh", "-c", "streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 5000"]
 build = ["sh", "-c", "bash setup.sh"]
 
 [workflows]
@@ -38,6 +38,15 @@ mode = "parallel"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python evaluate.py"
+
+[[workflows.workflow]]
+name = "Run Streamlit Chat"
+author = 17731565
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 5000"
 
 [[ports]]
 localPort = 5000
