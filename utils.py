@@ -12,8 +12,8 @@ def manager_validation(model):
         prompt = (
             f"The agent has produced the following answer:\n\n{answer}\n\n"
             "Please review this answer for the following criteria:\n"
-            "- Was the user question answered?\n"
-            "- Is the answer to the user's question as concise as possible?\n"
+            "- Was there a question from the user to be answered? If so, was the question answered?\n"
+            "- Is the response to the user as concise as possible?\n"
             "- If the user's question can be answered with a single word or a single number, that should be the answer.  If possible, was that the case?\n"
             "- Was a managed agent used to answer the question (if applicable)?\n"
             "List your reasoning. If no answer was provided, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
