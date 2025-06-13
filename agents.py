@@ -5,7 +5,7 @@ import yaml
 from smolagents import CodeAgent, ToolCallingAgent, OpenAIServerModel, InferenceClientModel
 from tools.shopify_mcp import search_shopify_docs, introspect_shopify_schema
 from tools import run_shopify_query
-from utils import build_prompt_with_memory, analyst_validation, manager_validation
+from utils import build_prompt_with_memory, analyst_validation, manager_validation, intercept_manager_final_answer
 from models.huggingface import HFTextGenModel
 from memory_utils import store_message, get_recent_history
 from llm.huggingface_model import HFModel
@@ -55,6 +55,7 @@ analyst_agent = AnalystAgent(name='Analyst',
                     introspect_shopify_schema                
                   ],
                    # step_callbacks=[trigger_manager_review],
+                   return_full_result=True,
                    provide_run_summary=True  # provide summary of work done
                  )
 
@@ -83,7 +84,7 @@ MODEL = OpenAIServerModel(model_id="gpt-4.1",    # OpenAI model
 class ManagerAgent(CodeAgent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.final_answer_checks = [manager_validation(self.model)]
+        # self.final_answer_checks = [manager_validation(self.model)]
 
 # Instantiate manager agent
 manager_agent = ManagerAgent(name='Manager',
@@ -101,6 +102,7 @@ manager_agent = ManagerAgent(name='Manager',
                   # ],
                   tools=[],
                   managed_agents=[analyst_agent],
+                  step_callbacks=[intercept_manager_final_answer]
                           
                   # final_answer_checks=True  # validates final answers from managed agents
                          )

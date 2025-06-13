@@ -60,9 +60,9 @@ Task:
 You're helping your manager solve a wider task: so make sure to not provide a one-line answer, but give as much information as possible.
 
 Your final_answer MUST contain:
-### 1. Task outcome (short version)
-### 2. Task outcome (extremely detailed version)
-### 3. Additional context (if relevant)
+### 1. Task outcome (short version, one-line answer)
+### 2. Task outcome (extremely detailed version of the approach, including all steps and breakdowns.  Include code snippets and justifications for each step.)
+### 3. Additional context or caveats (if relevant)
 
 Put all these in your final_answer tool.""",
         report="""Here is the final answer from your managed agent '{{name}}':

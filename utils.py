@@ -5,7 +5,32 @@ import psycopg2
 from memory_utils import get_db_connection
 from smolagents import ActionStep
 from memory_utils import store_message
+import json
 
+def intercept_manager_final_answer(memory_step, agent=None):
+    """Intercept the final answer from the agent and extract the concise version key"""
+
+    print("MEMORY STEP: ", memory_step)
+    print("AGENT: ", agent)
+    
+    # When the agent emits a final answer
+    if memory_step.action_output is not None and hasattr(agent, "name") and agent.name == "Manager":
+        # action_output could be a dict or string
+        output = memory_step.action_output
+        
+        # Try to parse if it's a string
+        if isinstance(output, str):
+            try:
+                output = json.loads(output)
+            except json.JSONDecodeError:
+                print("Warning: Final output not in JSON format")
+                return
+
+        if isinstance(output, dict):
+            concise = output.get("1. Task outcome (short version)")
+            if concise:
+                print("Extracted concise answer:", concise)
+                memory_step.action_output = concise
 
 def manager_validation(model):
     def validate_final_answer(answer: str, memory) -> bool:
@@ -16,7 +41,7 @@ def manager_validation(model):
             "- Is the response to the user as concise as possible?\n"
             "- If the user's question can be answered with a single word or a single number, that should be the answer.  If possible, was that the case?\n"
             "- Was a managed agent used to answer the question (if applicable)?\n"
-            "List your reasoning. If no answer was provided, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
+            "List your reasoning. If a question was asked but unanswered, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
         )
         messages = [{"role": "user", "content": prompt}]
         response = model(messages)
@@ -31,18 +56,43 @@ def manager_validation(model):
 
 def analyst_validation(model):
     def validate_final_answer(answer: str, memory) -> bool:
+        """Validate that the analysis done by the ANalyst agent was legitimate and trustworthy."""
+
+        # Serialize memory steps
+        steps = memory.get_full_steps()
+        codes = [step.get("code") for step in steps if step.get("code")]
+        code_str = "\n\n".join(codes)
+
+
         prompt = (
-            f"The agent has produced the following answer:\n\n{answer}\n\n"
-            "Please review this answer for the following criteria:\n"
-            "- Did the analysis generate an answer or was an answer made up (or hardcoded) in order to explain how to acheive the answer?\n"
-            "- Was actual code used to generate the answer?\n"
-            "- The agent has access to all Shopify data, does it's answer imply otherwise?\n"
-            "- Was the analysis thorough?\n"
-            "- Was proper pagination used?\n"
-            "- Was the full dataset necessary for this analysis obtained and used?\n"
-            "- Were assumptions clearly stated?\n"
-            "- Any errors or missing considerations?\n\n"
-            "List your reasoning. If no answer was provided, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
+            f"""You are a critical reviewer responsible for validating the trustworthiness of an Analyst Agent’s final answer & approach to obtaining that answer.\n
+            
+            The agent has produced the following answer:\n\n{answer}\n\n
+            Here is all the code it executed:\n{code_str}\n
+                
+    
+    Below is a JSON-formatted response from the Analyst Agent. You must answer the following questions *based solely on the content of the answer*. Be strict — if the answer does not provide clear evidence for something, mark it as a failure.\n\n
+    
+    For each question below, respond with:\n
+    - ✅ Yes \n
+    - ❌ No \n
+    - 🤔 Unclear \n
+    
+    Then include a short justification per question. \n\n
+    
+    
+    Questions: \n
+    1. Does the final answer include executable Python code used to perform the analysis or extract the data? \n
+    2. If API calls were required, does the code include pagination logic (e.g., loops, cursors, or query limits)? \n
+    3. Does the answer mention what data source(s) were used and how they were accessed? \n
+    4. Does the answer indicate that the result was computed or derived — rather than guessed or assumed? \n
+    5. If data was unavailable or insufficient, does the answer clearly state this and explain why? \n
+    6. Are caveats or assumptions listed, especially when working with incomplete or uncertain data? \n
+    7. Is the "short version" answer consistent with the detailed explanation? \n
+    8. Overall, would a domain expert trust this answer based on the reasoning and evidence provided? \n\n
+    
+    ---
+            List your reasoning. If no answer was provided, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."""
         )
         messages = [{"role": "user", "content": prompt}]
         response = model(messages)
