@@ -174,6 +174,41 @@ User Input:
 
                     # Display the step as an interactive thought bubble in real-time
                     with logs_container:
+                        # Generate step description based on tool calls or output
+                        step_description = ""
+                        if step_info["tool_calls"]:
+                            # Extract tool name from first tool call
+                            tool_call = step_info["tool_calls"][0]
+                            if hasattr(tool_call, 'name'):
+                                step_description = f"🔧 {tool_call.name}"
+                            elif hasattr(tool_call, 'function') and hasattr(tool_call.function, 'name'):
+                                step_description = f"🔧 {tool_call.function.name}"
+                            else:
+                                tool_str = str(tool_call)
+                                if "run_shopify_query" in tool_str:
+                                    step_description = "🔧 Shopify Query"
+                                elif "search_shopify_docs" in tool_str:
+                                    step_description = "📚 Docs Search"
+                                elif "introspect_shopify_schema" in tool_str:
+                                    step_description = "🔍 Schema Introspection"
+                                elif "python_interpreter" in tool_str:
+                                    step_description = "🐍 Python Code"
+                                else:
+                                    step_description = "🔧 Tool Call"
+                        elif step_info["output_text"] and len(step_info["output_text"]) > 0:
+                            # Try to infer step type from output content
+                            output_lower = step_info["output_text"].lower()
+                            if "thought:" in output_lower:
+                                step_description = "💭 Planning"
+                            elif "code:" in output_lower or "```" in step_info["output_text"]:
+                                step_description = "💻 Coding"
+                            elif "final_answer" in output_lower:
+                                step_description = "✅ Final Answer"
+                            else:
+                                step_description = "🧠 Processing"
+                        else:
+                            step_description = "🤔 Analyzing"
+
                         # Create thought bubble style container
                         st.markdown(f"""
                         <div style="
@@ -203,7 +238,7 @@ User Input:
                                 margin-bottom: 10px;
                                 font-style: italic;
                             ">
-                                🤔 {agent.name} is thinking... (Step {step.step_number})
+                                🤔 {agent.name} is thinking... (Step {step.step_number}) {step_description}
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
