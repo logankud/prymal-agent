@@ -6,6 +6,9 @@ from memory_utils import get_db_connection
 from smolagents import ActionStep, MultiStepAgent
 from memory_utils import store_message
 import json
+import os
+from smolagents import OpenAIServerModel
+
 
 def intercept_manager_final_answer(memory_step, agent=None):
     """Intercept the final answer from the agent and extract the concise version key"""
@@ -31,6 +34,72 @@ def intercept_manager_final_answer(memory_step, agent=None):
             if concise:
                 print("Extracted concise answer:", concise)
                 memory_step.action_output = concise
+
+
+def summarize_step(step_data: dict) -> str:
+    """
+    Generate a concise summary of an agent step using an LLM.
+
+    Args:
+        step_data: Dictionary containing step information with keys:
+                  - input_text, output_text, tool_calls, observations, error
+
+    Returns:
+        A brief summary string of what happened in this step
+    """
+    try:
+        # Load the prompt template
+        prompt_path = "prompts/summarizer_prompt.txt"
+        with open(prompt_path, "r") as f:
+            prompt_template = f.read()
+
+        # Extract step information
+        input_text = step_data.get("input_text", "")
+        output_text = step_data.get("output_text", "")
+        tool_calls = step_data.get("tool_calls", [])
+        observations = step_data.get("observations", "")
+        error = step_data.get("error", "")
+
+        # Format tool calls for readability
+        tool_calls_str = ""
+        if tool_calls:
+            tool_calls_str = "; ".join([str(tc) for tc in tool_calls])
+
+        # Create the prompt
+        prompt = prompt_template.format(
+            input_text=input_text[:500] if input_text else "None",  # Limit input length
+            output_text=output_text[:500] if output_text else "None",
+            tool_calls=tool_calls_str[:300] if tool_calls_str else "None",
+            observations=observations[:300] if observations else "None",
+            error=error[:200] if error else "None"
+        )
+
+        # Use OpenAI to generate summary
+        model = OpenAIServerModel(
+            model_id="gpt-4.1-nano",
+            api_key=os.environ["OPENAI_API_KEY"]
+        )
+
+        messages = [{"role": "user", "content": prompt}]
+        response = model(messages)
+
+        # Extract just the summary part
+        summary = response.content.strip()
+        if "Summary:" in summary:
+            summary = summary.split("Summary:")[-1].strip()
+
+        return summary
+
+    except Exception as e:
+        # Fallback to a simple summary if LLM fails
+        if step_data.get("tool_calls"):
+            return f"Executed tool: {step_data['tool_calls'][0]}"
+        elif step_data.get("error"):
+            return f"Encountered error: {str(step_data['error'])[:50]}..."
+        elif step_data.get("output_text"):
+            return "Generated agent response"
+        else:
+            return "Processing step"
 
 
 def analyst_callback(step: ActionStep, agent: MultiStepAgent):
