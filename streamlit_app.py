@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from agents import manager_agent
+from agents import manager_agent, analyst_agent
 from memory_utils import store_message, get_recent_history
 
 # Set page configuration
@@ -237,9 +237,13 @@ User Input:
                                 st.markdown("**📥 Context/Input:**")
                                 st.text_area("", step_info["input_text"], height=80, disabled=True, key=f"input_{step.step_number}")
 
-                # Temporarily add our callback to the manager agent
-                original_callbacks = manager_agent.step_callbacks.copy()
+                # Temporarily add our callback to both manager and analyst agents
+                original_manager_callbacks = manager_agent.step_callbacks.copy()
                 manager_agent.step_callbacks.append(streamlit_log_callback)
+
+                # Also add to analyst agent
+                original_analyst_callbacks = analyst_agent.step_callbacks.copy()
+                analyst_agent.step_callbacks.append(streamlit_log_callback)
 
                 try:
                     # Get response from manager agent
@@ -283,8 +287,9 @@ User Input:
                         """, unsafe_allow_html=True)
 
                 finally:
-                    # Restore original callbacks
-                    manager_agent.step_callbacks = original_callbacks
+                    # Restore original callbacks for both agents
+                    manager_agent.step_callbacks = original_manager_callbacks
+                    analyst_agent.step_callbacks = original_analyst_callbacks
 
                 # Store agent response
                 store_message(
