@@ -104,7 +104,7 @@ def store_agent_step(session_id: str, agent_name: str, step_data: dict):
                     json.dumps(step_data.get("output")),
                     json.dumps(step_data.get("tool_calls")),
                     json.dumps(step_data.get("observations")),
-                    json.dumps(step_data.get("error")),
+                    
                 ))
     finally:
         conn.close()
