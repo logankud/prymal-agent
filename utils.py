@@ -3,7 +3,7 @@ from langchain.schema import HumanMessage, AIMessage
 from datetime import datetime
 import psycopg2
 from memory_utils import get_db_connection
-from smolagents import ActionStep
+from smolagents import ActionStep, MultiStepAgent
 from memory_utils import store_message
 import json
 
@@ -32,27 +32,69 @@ def intercept_manager_final_answer(memory_step, agent=None):
                 print("Extracted concise answer:", concise)
                 memory_step.action_output = concise
 
-def manager_validation(model):
-    def validate_final_answer(answer: str, memory) -> bool:
-        prompt = (
-            f"The agent has produced the following answer:\n\n{answer}\n\n"
-            "Please review this answer for the following criteria:\n"
-            "- Was there a question from the user to be answered? If so, was the question answered?\n"
-            "- Is the response to the user as concise as possible?\n"
-            "- If the user's question can be answered with a single word or a single number, that should be the answer.  If possible, was that the case?\n"
-            "- Was a managed agent used to answer the question (if applicable)?\n"
-            "List your reasoning. If a question was asked but unanswered, or the criteria is not met, this is a failure.  At the end, reply with **PASS** or **FAIL**."
-        )
-        messages = [{"role": "user", "content": prompt}]
-        response = model(messages)
-        feedback = response.content.strip()
 
-        print("Checklist feedback:", feedback)
-        if "**FAIL**" in feedback:
-            raise Exception(feedback)
-        return True
+def analyst_callback(step: ActionStep, agent: MultiStepAgent):
+    """
+    Catch the Manger agent's final answer and validate it with the Agent's LLM model for completness
+    """
 
-    return validate_final_answer
+    # Only act on the final answer step
+    if not getattr(step, "is_final_answer", False):
+        return
+
+    final_answer = step.action_output
+
+    # Collect full trace of agent's steps
+    all_steps = agent.memory.get_full_steps()
+    trace_str = "\n".join(
+        f"Step {s['step_number']}:\n"
+        f"Thoughts: {s.get('thoughts', '')}\n"
+        f"Code:\n{s.get('code', '')}\n"
+        f"Observations: {s.get('observations', '')}\n"
+        for s in all_steps
+    )
+
+    # Validation prompt
+    prompt = f"""
+The agent has produced the following final answer:
+
+```
+{final_answer}
+```
+
+Here is the full trace of steps taken by the agent:
+
+```
+{trace_str}
+```
+
+You are a critical reviewer responsible for validating the trustworthiness of an Analyst Agent’s final answer.
+
+Please answer the following checklist strictly. Use ✅ Yes / ❌ No / 🤔 Unclear for each, and include a short justification.
+
+1. Does the final answer include executable Python code used to perform the analysis or extract the data?
+2. If API calls were required, does the code include pagination logic (e.g., loops, cursors, or query limits)?
+3. Does the answer mention what data source(s) were used and how they were accessed?
+4. Does the answer indicate that the result was computed or derived — rather than guessed or assumed?
+5. If data was unavailable or insufficient, does the answer clearly state this and explain why?
+6. Are caveats or assumptions listed, especially when working with incomplete or uncertain data?
+7. Is the "short version" answer consistent with the detailed explanation?
+8. Overall, would a domain expert trust this answer based on the reasoning and evidence provided?
+
+List your reasoning. If the answer is insufficient or untrustworthy, reply with **FAIL**. Otherwise, reply with **PASS**.
+"""
+
+    response = agent.model([{"role": "user", "content": prompt}])
+    verdict = response.content.strip()
+
+    if "**FAIL**" in verdict or "FAIL" in verdict:
+        raise Exception(f"Validation failed:\n{verdict}")
+
+    print("Validation passed.")
+    return True
+
+
+   
 
 def analyst_validation(model):
     def validate_final_answer(answer: str, memory) -> bool:

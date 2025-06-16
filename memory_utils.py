@@ -3,6 +3,8 @@ from tools.memory_setup import get_agent_memory
 import pandas as pd
 import psycopg2
 import os
+import json 
+
 
 
 def get_db_connection():
@@ -72,3 +74,37 @@ def get_recent_history(session_id: str, limit=20) -> list[dict]:
                 LIMIT %s
             """, (session_id, limit))
             return [{"role": r, "content": m} for r, m in reversed(cur.fetchall())]
+
+
+def store_agent_step(session_id: str, agent_name: str, step_data: dict):
+    """Store details of a smolagengts ActionStep in postgres"""
+    
+    # Connect to the database
+    conn = get_db_connection()
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO agent_steps (
+                        session_id,
+                        agent_name,
+                        step_number,
+                        input,
+                        output,
+                        tool_calls,
+                        observations,
+                        error
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    session_id,
+                    agent_name,
+                    step_data.get("step_number"),
+                    json.dumps(step_data.get("input")),
+                    json.dumps(step_data.get("output")),
+                    json.dumps(step_data.get("tool_calls")),
+                    json.dumps(step_data.get("observations")),
+                    json.dumps(step_data.get("error")),
+                ))
+    finally:
+        conn.close()

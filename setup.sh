@@ -41,7 +41,7 @@ done
 echo "✅ All required environment variables present"
 
 # 5. DATABASE SETUP WITH COMPREHENSIVE CHECKS
-echo "🗄️ Setting up database..."
+echo "💄️ Setting up database..."
 
 # Wait for database server
 echo "⏳ Waiting for database server..."
@@ -88,6 +88,27 @@ ON conversation_history(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_conversation_agent_role
 ON conversation_history(agent_name, role);
 
+-- Create agent step tracking table
+CREATE TABLE IF NOT EXISTS agent_steps (
+    id SERIAL PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    agent_name TEXT NOT NULL,
+    step_number INT,
+    input TEXT,
+    output TEXT,
+    tool_calls JSONB,
+    observations JSONB,
+    error TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes for agent step tracking
+CREATE INDEX IF NOT EXISTS idx_agent_steps_session_created 
+ON agent_steps(session_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_agent_steps_agent_stepnum
+ON agent_steps(agent_name, step_number);
+
 -- Verify table exists and is accessible
 INSERT INTO conversation_history (session_id, agent_name, role, message) 
 VALUES ('setup_test', 'system', 'system', 'Database setup verification') 
@@ -110,7 +131,7 @@ SELECT 'Database setup successful' AS status;
 done
 
 # 6. MCP SERVER VERIFICATION
-echo "🛠️ Verifying MCP server..."
+echo "🚰 Verifying MCP server..."
 if timeout 10 npx @shopify/dev-mcp --version >/dev/null 2>&1; then
     echo "✅ MCP server is functional"
 else
