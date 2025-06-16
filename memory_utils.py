@@ -1,4 +1,3 @@
-
 from tools.memory_setup import get_agent_memory
 import pandas as pd
 import psycopg2
@@ -44,7 +43,7 @@ def store_message(session_id: str, agent_name: str, role: str, message):
 
     """
     import json
-    
+
     # Convert message to string regardless of input type
     if isinstance(message, dict):
         message_str = json.dumps(message)
@@ -55,7 +54,7 @@ def store_message(session_id: str, agent_name: str, role: str, message):
 
     # Connect to the database
     conn = get_db_connection()
-    
+
     with conn:
         with conn.cursor() as cur:
             cur.execute("""
@@ -78,7 +77,7 @@ def get_recent_history(session_id: str, limit=20) -> list[dict]:
 
 def store_agent_step(session_id: str, agent_name: str, step_data: dict):
     """Store details of a smolagengts ActionStep in postgres"""
-    
+
     # Connect to the database
     conn = get_db_connection()
 
@@ -123,7 +122,7 @@ def get_agent_steps_by_session(session_id: str, limit=50) -> list[dict]:
                     ORDER BY created_at DESC
                     LIMIT %s
                 """, (session_id, limit))
-                
+
                 columns = ['agent_name', 'step_number', 'input', 'output', 'tool_calls', 'observations', 'error', 'created_at']
                 return [dict(zip(columns, row)) for row in cur.fetchall()]
     finally:

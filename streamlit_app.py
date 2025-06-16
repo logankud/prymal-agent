@@ -1,5 +1,13 @@
 import streamlit as st
 import os
+
+# Fix PyTorch compatibility with Streamlit
+import sys
+if 'torch' in sys.modules:
+    import torch
+    # Prevent Streamlit from inspecting torch modules that cause issues
+    torch._classes.__path__ = []
+
 from agents import manager_agent, analyst_agent, set_agents_session_id
 from memory_utils import store_message, get_recent_history
 
