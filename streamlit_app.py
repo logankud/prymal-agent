@@ -72,48 +72,112 @@ st.markdown("Chat with your AI agent for Shopify analysis and insights")
 
 # Display chat messages
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        if message["role"] == "assistant":
-            # Display assistant messages as clear bot responses
-            st.markdown(f"""
+    if message["role"] == "assistant":
+        # Display assistant messages in clean style like the image
+        st.markdown(f"""
+        <div style="
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+        ">
             <div style="
-                background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-                color: white;
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px 0;
-                position: relative;
-                box-shadow: 0 4px 8px rgba(76,175,80,0.3);
-                border-left: 4px solid #2E7D32;
+                width: 32px;
+                height: 32px;
+                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 12px;
+                flex-shrink: 0;
             ">
-                <div style="
-                    position: absolute;
-                    left: -10px;
-                    top: 20px;
-                    width: 0;
-                    height: 0;
-                    border-top: 10px solid transparent;
-                    border-bottom: 10px solid transparent;
-                    border-right: 15px solid #4CAF50;
-                "></div>
-                <div style="
-                    font-size: 16px;
-                    line-height: 1.5;
-                    font-weight: 500;
-                ">
-                    🤖 {message["content"]}
-                </div>
+                <span style="color: white; font-size: 14px; font-weight: bold;">AI</span>
             </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(message["content"])
+            <div style="
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 16px;
+                flex: 1;
+                line-height: 1.6;
+                color: #334155;
+            ">
+                {message["content"]}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Display user messages in clean style
+        st.markdown(f"""
+        <div style="
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+            justify-content: flex-end;
+        ">
+            <div style="
+                background: #3b82f6;
+                color: white;
+                border-radius: 12px;
+                padding: 16px;
+                max-width: 70%;
+                line-height: 1.6;
+                margin-right: 12px;
+            ">
+                {message["content"]}
+            </div>
+            <div style="
+                width: 32px;
+                height: 32px;
+                background: #3b82f6;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            ">
+                <span style="color: white; font-size: 14px; font-weight: bold;">U</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # Chat input
 if prompt := st.chat_input("What would you like to know about your Shopify data?"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # Display user message in clean style
+    st.markdown(f"""
+    <div style="
+        display: flex;
+        align-items: flex-start;
+        margin: 20px 0;
+        justify-content: flex-end;
+    ">
+        <div style="
+            background: #3b82f6;
+            color: white;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 70%;
+            line-height: 1.6;
+            margin-right: 12px;
+        ">
+            {prompt}
+        </div>
+        <div style="
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        ">
+            <span style="color: white; font-size: 14px; font-weight: bold;">U</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Store user message in database
     store_message(
@@ -217,42 +281,77 @@ User Input:
                         else:
                             step_description = "🤔 Analyzing"
 
-                        # Create thought bubble style container
-                        st.markdown(f"""
-                        <div style="
-                            background: linear-gradient(135deg, #e8f4fd 0%, #f1f8ff 100%);
-                            border: 2px dashed #0066cc;
-                            border-radius: 25px;
-                            padding: 20px;
-                            margin: 15px 0;
-                            position: relative;
-                            opacity: 0.9;
-                            box-shadow: 0 4px 8px rgba(0,102,204,0.2);
-                        ">
+                        # Create clean step indicator like in the image
+                        if step_info["tool_calls"]:
+                            # Tool call step - show green dot with tool name
+                            tool_call = step_info["tool_calls"][0]
+                            tool_name = "Unknown Tool"
+                            if hasattr(tool_call, 'name'):
+                                tool_name = tool_call.name
+                            elif hasattr(tool_call, 'function') and hasattr(tool_call.function, 'name'):
+                                tool_name = tool_call.function.name
+                            else:
+                                tool_str = str(tool_call)
+                                if "run_shopify_query" in tool_str:
+                                    tool_name = "Shopify Query"
+                                elif "search_shopify_docs" in tool_str:
+                                    tool_name = "Documentation Search"
+                                elif "introspect_shopify_schema" in tool_str:
+                                    tool_name = "Schema Analysis"
+                                elif "python_interpreter" in tool_str:
+                                    tool_name = "Python Analysis"
+                            
+                            st.markdown(f"""
                             <div style="
-                                position: absolute;
-                                left: -15px;
-                                top: 30px;
-                                width: 0;
-                                height: 0;
-                                border-top: 15px solid transparent;
-                                border-bottom: 15px solid transparent;
-                                border-right: 20px solid #e8f4fd;
-                            "></div>
-                            <div style="
-                                font-size: 16px;
-                                font-weight: bold;
-                                color: #0066cc;
-                                margin-bottom: 10px;
-                                font-style: italic;
+                                display: flex;
+                                align-items: center;
+                                padding: 8px 0;
+                                margin: 5px 0;
                             ">
-                                🤔 {agent.name} is thinking... (Step {step.step_number}) {step_description}
+                                <div style="
+                                    width: 12px;
+                                    height: 12px;
+                                    background-color: #22c55e;
+                                    border-radius: 50%;
+                                    margin-right: 12px;
+                                "></div>
+                                <span style="
+                                    font-size: 14px;
+                                    color: #374151;
+                                    font-weight: 500;
+                                ">
+                                    {tool_name}
+                                </span>
                             </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
+                        else:
+                            # Thinking step - show thinking indicator
+                            st.markdown(f"""
+                            <div style="
+                                display: flex;
+                                align-items: center;
+                                padding: 8px 0;
+                                margin: 5px 0;
+                            ">
+                                <div style="
+                                    width: 12px;
+                                    height: 12px;
+                                    background-color: #3b82f6;
+                                    border-radius: 50%;
+                                    margin-right: 12px;
+                                "></div>
+                                <span style="
+                                    font-size: 14px;
+                                    color: #374151;
+                                    font-weight: 500;
+                                ">
+                                    {step_description}
+                                </span>
+                            </div>
+                            """, unsafe_allow_html=True)
 
-                        # Expandable details for the thought process
-                        with st.expander(f"💭 View {agent.name}'s thought process (Step {step.step_number})", expanded=False):
+                        # Expandable details for the thought process (less prominent)
+                        with st.expander(f"🔍 Step {step.step_number} details", expanded=False):
                             st.markdown("**🧠 Agent Internal Processing:**")
 
                             col1, col2 = st.columns(2)
@@ -300,32 +399,37 @@ User Input:
                         st.markdown("---")
                         st.markdown("## 🤖 AI Assistant Response")
 
-                        # Bot response container with clear styling
+                        # Final answer in clean conversational style
                         st.markdown(f"""
                         <div style="
-                            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-                            color: white;
-                            border-radius: 15px;
-                            padding: 25px;
-                            margin: 20px 0;
-                            position: relative;
-                            box-shadow: 0 6px 12px rgba(76,175,80,0.3);
-                            border-left: 5px solid #2E7D32;
+                            display: flex;
+                            align-items: flex-start;
+                            margin: 30px 0;
+                            border-top: 1px solid #e2e8f0;
+                            padding-top: 20px;
                         ">
                             <div style="
-                                position: absolute;
-                                left: -12px;
-                                top: 25px;
-                                width: 0;
-                                height: 0;
-                                border-top: 12px solid transparent;
-                                border-bottom: 12px solid transparent;
-                                border-right: 15px solid #4CAF50;
-                            "></div>
+                                width: 32px;
+                                height: 32px;
+                                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin-right: 12px;
+                                flex-shrink: 0;
+                            ">
+                                <span style="color: white; font-size: 14px; font-weight: bold;">AI</span>
+                            </div>
                             <div style="
-                                font-size: 18px;
+                                background: #f8fafc;
+                                border: 1px solid #e2e8f0;
+                                border-radius: 12px;
+                                padding: 20px;
+                                flex: 1;
                                 line-height: 1.6;
-                                font-weight: 500;
+                                color: #334155;
+                                font-size: 16px;
                             ">
                                 {response}
                             </div>
