@@ -104,7 +104,27 @@ def store_agent_step(session_id: str, agent_name: str, step_data: dict):
                     json.dumps(step_data.get("output")),
                     json.dumps(step_data.get("tool_calls")),
                     json.dumps(step_data.get("observations")),
-                    
+                    json.dumps(step_data.get("error"))
                 ))
+    finally:
+        conn.close()
+
+
+def get_agent_steps_by_session(session_id: str, limit=50) -> list[dict]:
+    """Get agent steps for a specific session"""
+    conn = get_db_connection()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT agent_name, step_number, input, output, tool_calls, observations, error, created_at
+                    FROM agent_steps
+                    WHERE session_id = %s
+                    ORDER BY created_at DESC
+                    LIMIT %s
+                """, (session_id, limit))
+                
+                columns = ['agent_name', 'step_number', 'input', 'output', 'tool_calls', 'observations', 'error', 'created_at']
+                return [dict(zip(columns, row)) for row in cur.fetchall()]
     finally:
         conn.close()

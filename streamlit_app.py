@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from agents import manager_agent, analyst_agent
+from agents import manager_agent, analyst_agent, set_agents_session_id
 from memory_utils import store_message, get_recent_history
 
 # Set page configuration
@@ -271,6 +271,9 @@ User Input:
                             if step_info["input_text"] and len(step_info["input_text"]) < 1000:
                                 st.markdown("**📥 Context/Input:**")
                                 st.text_area("", step_info["input_text"], height=80, disabled=True, key=f"input_{step.step_number}")
+
+                # Set the session ID on both agents before running
+                set_agents_session_id(st.session_state.session_id)
 
                 # Temporarily add our callback to both manager and analyst agents
                 original_manager_callbacks = manager_agent.step_callbacks.copy()

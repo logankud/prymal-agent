@@ -13,6 +13,12 @@ from memory_utils import store_agent_step
 import traceback
 
 
+def set_agents_session_id(session_id: str):
+    """Set the session ID for both manager and analyst agents"""
+    manager_agent.session_id = session_id
+    analyst_agent.session_id = session_id
+
+
 # Logging function to use as a step callback
 def log_step(step, agent):
     print(f"\n=== Step {step.step_number} ===")
@@ -55,9 +61,10 @@ def log_step(step, agent):
 
     # Store step in the DB using your existing schema
     try:
+        # Get session ID from agent's custom attribute if available, otherwise use "test"
+        session_id = getattr(agent, 'session_id', "test")
         store_agent_step(
-            session_id=
-            "test",  # Replace this with a dynamic session ID if needed
+            session_id=session_id,
             agent_name=agent.name,
             step_data={
                 "step_number": step.step_number,
@@ -117,6 +124,8 @@ analyst_agent = AnalystAgent(
     step_callbacks=[log_step, analyst_callback],
     provide_run_summary=True  # provide summary of work done
 )
+# Add default session_id attribute
+analyst_agent.session_id = "test"
 
 # Manager Agent
 # ----------------------------------------
@@ -170,3 +179,5 @@ manager_agent = ManagerAgent(
 
     # final_answer_checks=True  # validates final answers from managed agents
 )
+# Add default session_id attribute
+manager_agent.session_id = "test"
