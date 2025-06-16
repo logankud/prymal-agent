@@ -26,17 +26,17 @@ st.markdown("Chat with your AI agent for Shopify analysis and insights")
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         if message["role"] == "assistant":
-            # Display assistant messages in thought bubble style
+            # Display assistant messages as clear bot responses
             st.markdown(f"""
             <div style="
-                background-color: #f0f2f6;
-                border: 2px solid #e1e5e9;
-                border-radius: 20px;
+                background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                color: white;
+                border-radius: 15px;
                 padding: 20px;
                 margin: 10px 0;
                 position: relative;
-                font-style: italic;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 8px rgba(76,175,80,0.3);
+                border-left: 4px solid #2E7D32;
             ">
                 <div style="
                     position: absolute;
@@ -46,9 +46,15 @@ for message in st.session_state.messages:
                     height: 0;
                     border-top: 10px solid transparent;
                     border-bottom: 10px solid transparent;
-                    border-right: 15px solid #f0f2f6;
+                    border-right: 15px solid #4CAF50;
                 "></div>
-                {message["content"]}
+                <div style="
+                    font-size: 16px;
+                    line-height: 1.5;
+                    font-weight: 500;
+                ">
+                    🤖 {message["content"]}
+                </div>
             </div>
             """, unsafe_allow_html=True)
         else:
@@ -126,23 +132,70 @@ User Input:
                     # Add to session state logs
                     st.session_state.current_run_logs.append(step_info)
                     
-                    # Display the step in real-time
+                    # Display the step as an interactive thought bubble in real-time
                     with logs_container:
-                        with st.expander(f"🔍 Step {step.step_number} - {agent.name}", expanded=False):
-                            if step_info["input_text"]:
-                                st.text_area("📥 Input", step_info["input_text"], height=100, disabled=True)
+                        # Create thought bubble style container
+                        st.markdown(f"""
+                        <div style="
+                            background: linear-gradient(135deg, #e8f4fd 0%, #f1f8ff 100%);
+                            border: 2px dashed #0066cc;
+                            border-radius: 25px;
+                            padding: 20px;
+                            margin: 15px 0;
+                            position: relative;
+                            opacity: 0.9;
+                            box-shadow: 0 4px 8px rgba(0,102,204,0.2);
+                        ">
+                            <div style="
+                                position: absolute;
+                                left: -15px;
+                                top: 30px;
+                                width: 0;
+                                height: 0;
+                                border-top: 15px solid transparent;
+                                border-bottom: 15px solid transparent;
+                                border-right: 20px solid #e8f4fd;
+                            "></div>
+                            <div style="
+                                font-size: 16px;
+                                font-weight: bold;
+                                color: #0066cc;
+                                margin-bottom: 10px;
+                                font-style: italic;
+                            ">
+                                🤔 {agent.name} is thinking... (Step {step.step_number})
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Expandable details for the thought process
+                        with st.expander(f"💭 View {agent.name}'s thought process (Step {step.step_number})", expanded=False):
+                            st.markdown("**🧠 Agent Internal Processing:**")
                             
-                            if step_info["output_text"]:
-                                st.text_area("📤 Output", step_info["output_text"], height=100, disabled=True)
+                            col1, col2 = st.columns(2)
                             
-                            if step_info["tool_calls"]:
-                                st.json({"🔨 Tool Calls": [str(tc) for tc in step_info["tool_calls"]]})
+                            with col1:
+                                if step_info["output_text"]:
+                                    st.markdown("**💬 Agent Output:**")
+                                    st.text_area("", step_info["output_text"], height=120, disabled=True, key=f"output_{step.step_number}")
+                                
+                                if step_info["tool_calls"]:
+                                    st.markdown("**🔨 Tool Calls:**")
+                                    for i, tc in enumerate(step_info["tool_calls"]):
+                                        st.code(str(tc), language="python")
                             
-                            if step_info["observations"]:
-                                st.text_area("🧾 Observations", step_info["observations"], height=80, disabled=True)
+                            with col2:
+                                if step_info["observations"]:
+                                    st.markdown("**🧾 Tool Results:**")
+                                    st.text_area("", step_info["observations"], height=120, disabled=True, key=f"obs_{step.step_number}")
+                                
+                                if step_info["error"]:
+                                    st.markdown("**❌ Error:**")
+                                    st.error(step_info["error"])
                             
-                            if step_info["error"]:
-                                st.error(f"❌ Error: {step_info['error']}")
+                            if step_info["input_text"] and len(step_info["input_text"]) < 1000:
+                                st.markdown("**📥 Context/Input:**")
+                                st.text_area("", step_info["input_text"], height=80, disabled=True, key=f"input_{step.step_number}")
                 
                 # Temporarily add our callback to the manager agent
                 original_callbacks = manager_agent.step_callbacks.copy()
@@ -152,31 +205,40 @@ User Input:
                     # Get response from manager agent
                     response = manager_agent.run(full_prompt)
                     
-                    # Display final answer in thought bubble style
+                    # Display final answer as clear bot response
                     with final_answer_container:
-                        st.markdown("### 💭 Final Answer")
+                        st.markdown("---")
+                        st.markdown("## 🤖 AI Assistant Response")
+                        
+                        # Bot response container with clear styling
                         st.markdown(f"""
                         <div style="
-                            background-color: #f0f2f6;
-                            border: 2px solid #e1e5e9;
-                            border-radius: 20px;
-                            padding: 20px;
-                            margin: 10px 0;
+                            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                            color: white;
+                            border-radius: 15px;
+                            padding: 25px;
+                            margin: 20px 0;
                             position: relative;
-                            font-style: italic;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            box-shadow: 0 6px 12px rgba(76,175,80,0.3);
+                            border-left: 5px solid #2E7D32;
                         ">
                             <div style="
                                 position: absolute;
-                                left: -10px;
-                                top: 20px;
+                                left: -12px;
+                                top: 25px;
                                 width: 0;
                                 height: 0;
-                                border-top: 10px solid transparent;
-                                border-bottom: 10px solid transparent;
-                                border-right: 15px solid #f0f2f6;
+                                border-top: 12px solid transparent;
+                                border-bottom: 12px solid transparent;
+                                border-right: 15px solid #4CAF50;
                             "></div>
-                            {response}
+                            <div style="
+                                font-size: 18px;
+                                line-height: 1.6;
+                                font-weight: 500;
+                            ">
+                                {response}
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
                     
