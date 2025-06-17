@@ -20,7 +20,6 @@ mode = "parallel"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
-# args = "python test.py"
 
 [[workflows.workflow]]
 name = "Run OAuth Slackbot"
@@ -47,7 +46,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 5000 --server.headless true --server.enableCORS=false --server.enableWebsocketCompression=false"
+args = "streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 5000 --server.headless true --server.enableCORS=false --server.enableWebsocketCompression=false --server.fileWatcherType none --server.runOnSave false"
 
 [[ports]]
 localPort = 5000
