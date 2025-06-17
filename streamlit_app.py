@@ -93,7 +93,11 @@ if user_prompt:
     st.experimental_rerun()  # to render the newly appended message immediately
 
 # ──────────────── Process agent response if flagged ────────────────
-if getattr(st.session_state, 'process_user_message', False) and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+# Only process if flag is set AND we're not in the same run as user input
+if (getattr(st.session_state, 'process_user_message', False) and 
+    st.session_state.messages and 
+    st.session_state.messages[-1]["role"] == "user" and
+    not user_prompt):  # Make sure this isn't the same run where user entered input
     # Containers for logs and answer
     logs_ct = st.container()
     answer_ct = st.container()
