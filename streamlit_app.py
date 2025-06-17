@@ -7,6 +7,7 @@ def fix_torch_streamlit_compatibility():
     """Fix PyTorch compatibility issues with Streamlit"""
     if "torch" in sys.modules:
         import torch
+        
         # Fix the __path__ attribute issue
         if hasattr(torch._classes, '__path__'):
             torch._classes.__path__ = []
@@ -15,13 +16,24 @@ def fix_torch_streamlit_compatibility():
         if hasattr(torch._classes, '_path'):
             torch._classes._path = []
             
-        # Monkey patch the problematic __getattr__ method
-        original_getattr = torch._classes.__getattr__
-        def safe_getattr(name):
-            if name in ('__path__', '_path'):
-                return []
-            return original_getattr(name)
-        torch._classes.__getattr__ = safe_getattr
+        # Safer monkey patch approach - only if __getattr__ exists
+        if hasattr(torch._classes, '__getattr__'):
+            original_getattr = torch._classes.__getattr__
+            def safe_getattr(name):
+                if name in ('__path__', '_path'):
+                    return []
+                return original_getattr(name)
+            torch._classes.__getattr__ = safe_getattr
+        else:
+            # If no __getattr__, create a custom one
+            def safe_getattr(name):
+                if name in ('__path__', '_path'):
+                    return []
+                # Try to get the attribute normally, or raise AttributeError
+                if hasattr(torch._classes, name):
+                    return getattr(torch._classes, name)
+                raise AttributeError(f"module 'torch._classes' has no attribute '{name}'")
+            torch._classes.__getattr__ = safe_getattr
 
 # Apply the fix before importing any other modules
 fix_torch_streamlit_compatibility()
