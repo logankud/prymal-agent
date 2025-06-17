@@ -111,6 +111,9 @@ user_prompt = st.chat_input(
 )
 
 if user_prompt:
+    # Debug logging
+    st.write(f"Debug: User submitted: {user_prompt}")
+    
     # 1) echo & store user
     st.session_state.messages.append({"role": "user", "content": user_prompt})
     store_message(
@@ -121,10 +124,15 @@ if user_prompt:
     )
     # Set the user message to process
     st.session_state.pending_user_message = user_prompt
+    st.session_state.processing_message = True
+    st.write(f"Debug: Set pending message: {st.session_state.pending_user_message}")
     st.experimental_rerun()  # to render the newly appended message immediately
 
 # ──────────────── Process agent response if there's a pending message ────────────────
-if hasattr(st.session_state, 'pending_user_message') and st.session_state.pending_user_message:
+if (hasattr(st.session_state, 'pending_user_message') and 
+    st.session_state.pending_user_message and 
+    hasattr(st.session_state, 'processing_message') and 
+    st.session_state.processing_message):
     # Containers for logs and answer
     logs_ct = st.container()
     answer_ct = st.container()
@@ -228,8 +236,10 @@ if hasattr(st.session_state, 'pending_user_message') and st.session_state.pendin
         message=resp,
     )
     st.session_state.messages.append({"role": "assistant", "content": resp})
-    # Clear the pending message
+    # Clear the pending message and processing flag
     st.session_state.pending_user_message = None
+    st.session_state.processing_message = False
+    st.write(f"Debug: Cleared pending message and processing flag")
 
 # ─────────────── Sidebar ─────────────────────
 with st.sidebar:
