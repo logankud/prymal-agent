@@ -119,16 +119,12 @@ if user_prompt:
         role="user",
         message=user_prompt,
     )
-    # Set a flag to process the message on next run
-    st.session_state.process_user_message = True
+    # Set the user message to process
+    st.session_state.pending_user_message = user_prompt
     st.experimental_rerun()  # to render the newly appended message immediately
 
-# ──────────────── Process agent response if flagged ────────────────
-# Only process if flag is set AND we're not in the same run as user input
-if (getattr(st.session_state, 'process_user_message', False) and 
-    st.session_state.messages and 
-    st.session_state.messages[-1]["role"] == "user" and
-    not user_prompt):  # Make sure this isn't the same run where user entered input
+# ──────────────── Process agent response if there's a pending message ────────────────
+if hasattr(st.session_state, 'pending_user_message') and st.session_state.pending_user_message:
     # Containers for logs and answer
     logs_ct = st.container()
     answer_ct = st.container()
@@ -196,7 +192,7 @@ if (getattr(st.session_state, 'process_user_message', False) and
         # build prompt from last 10 messages
         hist = get_recent_history(st.session_state.session_id, limit=10)
         txt = "\n".join(f"{m['role']}: {m['content']}" for m in hist)
-        prompt = f"Recent history:\n{txt}\n\nUser: {st.session_state.messages[-1]['content']}"
+        prompt = f"Recent history:\n{txt}\n\nUser: {st.session_state.pending_user_message}"
         resp = manager_agent.run(prompt)
 
         with answer_ct:
@@ -232,8 +228,8 @@ if (getattr(st.session_state, 'process_user_message', False) and
         message=resp,
     )
     st.session_state.messages.append({"role": "assistant", "content": resp})
-    # Clear the processing flag
-    st.session_state.process_user_message = False
+    # Clear the pending message
+    st.session_state.pending_user_message = None
 
 # ─────────────── Sidebar ─────────────────────
 with st.sidebar:
