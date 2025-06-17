@@ -2,10 +2,29 @@ import streamlit as st
 import sys
 import uuid
 
-# Fix PyTorch compatibility with Streamlit
-if "torch" in sys.modules:
-    import torch
-    torch._classes.__path__ = []
+# Comprehensive fix for PyTorch-Streamlit compatibility
+def fix_torch_streamlit_compatibility():
+    """Fix PyTorch compatibility issues with Streamlit"""
+    if "torch" in sys.modules:
+        import torch
+        # Fix the __path__ attribute issue
+        if hasattr(torch._classes, '__path__'):
+            torch._classes.__path__ = []
+        
+        # Disable Streamlit's file watcher for torch modules
+        if hasattr(torch._classes, '_path'):
+            torch._classes._path = []
+            
+        # Monkey patch the problematic __getattr__ method
+        original_getattr = torch._classes.__getattr__
+        def safe_getattr(name):
+            if name in ('__path__', '_path'):
+                return []
+            return original_getattr(name)
+        torch._classes.__getattr__ = safe_getattr
+
+# Apply the fix before importing any other modules
+fix_torch_streamlit_compatibility()
 
 from agents import manager_agent, analyst_agent, set_agents_session_id
 from memory_utils import store_message, get_recent_history

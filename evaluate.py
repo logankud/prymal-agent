@@ -4,8 +4,19 @@ import os
 from difflib import SequenceMatcher
 from termcolor import colored
 from datetime import datetime
+import sys
 
+# Fix PyTorch compatibility issues
+def fix_torch_compatibility():
+    """Fix PyTorch compatibility issues"""
+    if "torch" in sys.modules:
+        import torch
+        if hasattr(torch._classes, '__path__'):
+            torch._classes.__path__ = []
+        if hasattr(torch._classes, '_path'):
+            torch._classes._path = []
 
+fix_torch_compatibility()
 
 # Import the actual agent from agents.py
 from agents import manager_agent
@@ -27,20 +38,23 @@ def similarity(a: str, b: str) -> float:
     """
     # Lazy import to avoid torch conflicts with Streamlit
     try:
+        # Apply torch fix before importing sentence-transformers
+        fix_torch_compatibility()
         from sentence_transformers import SentenceTransformer, util
-    except ImportError:
+        
+        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        embedding1 = model.encode(a, convert_to_tensor=True)
+        embedding2 = model.encode(b, convert_to_tensor=True)
+        
+        # Compute cosine similarity between the embeddings
+        cosine_sim = util.cos_sim(embedding1, embedding2)
+        return cosine_sim.item()
+        
+    except Exception as e:
+        print(f"Warning: Failed to use sentence-transformers ({e}), falling back to simple similarity")
         # Fallback to simple string similarity if sentence-transformers unavailable
         from difflib import SequenceMatcher
         return SequenceMatcher(None, a, b).ratio()
-
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-
-    embedding1 = model.encode(a, convert_to_tensor=True)
-    embedding2 = model.encode(b, convert_to_tensor=True)
-
-    # Compute cosine similarity between the embeddings
-    cosine_sim = util.cos_sim(embedding1, embedding2)
-    return cosine_sim.item()
 
 def save_evaluation_results(results, file_path="eval/evaluation_results.json"):
     """Save evaluation results with timestamp for tracking"""
