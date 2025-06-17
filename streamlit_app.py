@@ -146,6 +146,10 @@ if st.session_state.pending_user_message and st.session_state.processing_message
     logs_ct = st.container()
     answer_ct = st.container()
     st.session_state.current_run_logs = []
+    
+    # Generate unique run ID for this execution
+    import uuid
+    run_id = str(uuid.uuid4())[:8]
 
     # Callback to render each step
     def log_cb(step, agent):
