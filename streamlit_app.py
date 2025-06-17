@@ -112,27 +112,44 @@ user_prompt = st.chat_input(
 
 if user_prompt:
     # Debug logging
-    st.write(f"Debug: User submitted: {user_prompt}")
+    st.write(f"🔍 Debug: User submitted: '{user_prompt}'")
+    st.write(f"🔍 Debug: Session ID: {st.session_state.session_id}")
     
     # 1) echo & store user
     st.session_state.messages.append({"role": "user", "content": user_prompt})
-    store_message(
-        session_id=st.session_state.session_id,
-        agent_name="user",
-        role="user",
-        message=user_prompt,
-    )
+    try:
+        store_message(
+            session_id=st.session_state.session_id,
+            agent_name="user",
+            role="user",
+            message=user_prompt,
+        )
+        st.write("✅ Debug: Message stored successfully")
+    except Exception as e:
+        st.write(f"❌ Debug: Error storing message: {e}")
+    
     # Set the user message to process
     st.session_state.pending_user_message = user_prompt
     st.session_state.processing_message = True
-    st.write(f"Debug: Set pending message: {st.session_state.pending_user_message}")
+    st.write(f"🔍 Debug: Set pending message: '{st.session_state.pending_user_message}'")
+    st.write(f"🔍 Debug: Processing flag: {st.session_state.processing_message}")
     st.experimental_rerun()  # to render the newly appended message immediately
 
 # ──────────────── Process agent response if there's a pending message ────────────────
+st.write(f"🔍 Debug: Checking for pending message...")
+st.write(f"🔍 Debug: pending_user_message exists: {hasattr(st.session_state, 'pending_user_message')}")
+if hasattr(st.session_state, 'pending_user_message'):
+    st.write(f"🔍 Debug: pending_user_message value: '{st.session_state.pending_user_message}'")
+st.write(f"🔍 Debug: processing_message exists: {hasattr(st.session_state, 'processing_message')}")
+if hasattr(st.session_state, 'processing_message'):
+    st.write(f"🔍 Debug: processing_message value: {st.session_state.processing_message}")
+
 if (hasattr(st.session_state, 'pending_user_message') and 
     st.session_state.pending_user_message and 
     hasattr(st.session_state, 'processing_message') and 
     st.session_state.processing_message):
+    
+    st.write("🚀 Debug: Starting agent processing...")
     # Containers for logs and answer
     logs_ct = st.container()
     answer_ct = st.container()
@@ -197,11 +214,16 @@ if (hasattr(st.session_state, 'pending_user_message') and
     analyst_agent.step_callbacks.append(log_cb)
 
     try:
+        st.write("🔍 Debug: Building prompt...")
         # build prompt from last 10 messages
         hist = get_recent_history(st.session_state.session_id, limit=10)
         txt = "\n".join(f"{m['role']}: {m['content']}" for m in hist)
         prompt = f"Recent history:\n{txt}\n\nUser: {st.session_state.pending_user_message}"
+        st.write(f"🔍 Debug: Prompt built, length: {len(prompt)} chars")
+        
+        st.write("🤖 Debug: Calling manager_agent.run()...")
         resp = manager_agent.run(prompt)
+        st.write(f"✅ Debug: Agent response received, length: {len(resp)} chars")
 
         with answer_ct:
             st.markdown("---")
@@ -224,22 +246,34 @@ if (hasattr(st.session_state, 'pending_user_message') and
                 </div>
             """, unsafe_allow_html=True)
 
+    except Exception as e:
+        st.error(f"❌ Error during agent execution: {e}")
+        st.write(f"🔍 Debug: Full error: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc())
+        resp = f"Sorry, I encountered an error: {str(e)}"
+    
     finally:
         manager_agent.step_callbacks = mgr_cb
         analyst_agent.step_callbacks = anl_cb
 
     # store & append
-    store_message(
-        session_id=st.session_state.session_id,
-        agent_name="Manager",
-        role="agent",
-        message=resp,
-    )
+    try:
+        store_message(
+            session_id=st.session_state.session_id,
+            agent_name="Manager",
+            role="agent",
+            message=resp,
+        )
+        st.write("✅ Debug: Agent response stored successfully")
+    except Exception as e:
+        st.write(f"❌ Debug: Error storing agent response: {e}")
+    
     st.session_state.messages.append({"role": "assistant", "content": resp})
     # Clear the pending message and processing flag
     st.session_state.pending_user_message = None
     st.session_state.processing_message = False
-    st.write(f"Debug: Cleared pending message and processing flag")
+    st.write(f"✅ Debug: Cleared pending message and processing flag")
 
 # ─────────────── Sidebar ─────────────────────
 with st.sidebar:
