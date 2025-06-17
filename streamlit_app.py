@@ -88,10 +88,12 @@ if user_prompt:
         role="user",
         message=user_prompt,
     )
+    # Set a flag to process the message on next run
+    st.session_state.process_user_message = True
     st.experimental_rerun()  # to render the newly appended message immediately
 
-# ──────────────── Once we have a new message in state ────────────────
-if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+# ──────────────── Process agent response if flagged ────────────────
+if getattr(st.session_state, 'process_user_message', False) and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     # Containers for logs and answer
     logs_ct = st.container()
     answer_ct = st.container()
@@ -195,6 +197,8 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
         message=resp,
     )
     st.session_state.messages.append({"role": "assistant", "content": resp})
+    # Clear the processing flag
+    st.session_state.process_user_message = False
 
 # ─────────────── Sidebar ─────────────────────
 with st.sidebar:
