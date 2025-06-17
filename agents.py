@@ -23,60 +23,36 @@ def set_agents_session_id(session_id: str):
 def log_step(step, agent):
     print(f"\n=== Step {step.step_number} ===")
 
-    # Build prompt input from memory
-    try:
-        prompt_msgs = agent.write_memory_to_messages()
-        input_text = "\n".join(
-            [f"{m['role']}: {m['content']}" for m in prompt_msgs])
-        print("📥 LLM Prompt Messages:")
-        for msg in prompt_msgs:
-            print(f"  {msg['role']}: {msg['content']}")
-    except Exception as e:
-        input_text = "[Error capturing input]"
-        print("📥 LLM Prompt: [Unavailable]", e)
-
-    # Extract output
-    output_text = getattr(step, "action_output", None)
-    print("📤 LLM Output:\n", output_text)
-
-    # Tool calls
+    # Extract details safely
+    input_text = getattr(step, "input", None)
+    output_text = getattr(step, "output", None)
     tool_calls = getattr(step, "tool_calls", None)
+    observations = getattr(step, "observations", None)
+    error = getattr(step, "error", None)
+
+    # Print step info for debugging
+    print("📥 LLM Input:\n", input_text)
+    print("📤 LLM Output:\n", output_text)
     if tool_calls:
         print("🔨 Tool Calls:", tool_calls)
-
-    # Observations
-    observations = getattr(step, "observations", None)
     if observations:
         print("🧾 Observations:", observations)
+    if error:
+        print("❌ Error:", error)
 
-    # Error handling
-    error_text = None
-    if getattr(step, "error", None):
-        try:
-            error_text = str(step.error)
-            print("❌ Error:", error_text)
-        except Exception:
-            error_text = "Unserializable error"
-            print("❌ Error: [Unserializable]")
-
-    # Store step in the DB using your existing schema
-    try:
-        # Get session ID from agent's custom attribute if available, otherwise use "test"
-        session_id = getattr(agent, 'session_id', "test")
-        store_agent_step(
-            session_id=session_id,
-            agent_name=agent.name,
-            step_data={
-                "step_number": step.step_number,
-                "input_text": input_text,
-                "output_text": output_text,
-                "tool_calls":
-                [str(tc) for tc in tool_calls] if tool_calls else None,
-                "observations": observations,
-                "error": error_text,
-            })
-    except Exception as db_err:
-        print("❌ Failed to store step in DB:", traceback.format_exc())
+    # Store step in Postgres (with correct key names)
+    store_agent_step(
+        session_id="test",
+        agent_name=agent.name,
+        step_data={
+            "step_number": step.step_number,
+            "input": input_text,
+            "output": output_text,
+            "tool_calls": [str(tc) for tc in tool_calls] if tool_calls else None,
+            "observations": observations,
+            "error": str(error) if error else None,
+        }
+    )
 
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")

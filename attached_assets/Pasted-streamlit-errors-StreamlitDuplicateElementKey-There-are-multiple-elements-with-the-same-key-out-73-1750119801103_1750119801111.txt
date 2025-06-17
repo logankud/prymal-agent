@@ -1,0 +1,34 @@
+streamlit.errors.StreamlitDuplicateElementKey: There are multiple elements with the same key='out_735ea19c_1'. To fix this, please make sure that the key argument is unique for each element you create.
+
+Traceback:
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 121, in exec_func_with_error_handling
+    result = func()
+             ^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 645, in code_to_exec
+    exec(code, module.__dict__)
+File "/home/runner/workspace/streamlit_app.py", line 163, in <module>
+    resp = manager_agent.run(prompt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/smolagents/agents.py", line 341, in run
+    return deque(self._run(task=self.task, max_steps=max_steps, images=images), maxlen=1)[0].final_answer
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/smolagents/agents.py", line 370, in _run
+    self._finalize_step(action_step, step_start_time)
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/smolagents/agents.py", line 402, in _finalize_step
+    callback(memory_step) if len(inspect.signature(callback).parameters) == 1 else callback(
+                                                                                   ^^^^^^^^^
+File "/home/runner/workspace/streamlit_app.py", line 133, in log_cb
+    st.text_area("", info["output"], height=100, disabled=True,
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/runtime/metrics_util.py", line 444, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/elements/widgets/text_widgets.py", line 547, in text_area
+    return self._text_area(
+           ^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/elements/widgets/text_widgets.py", line 592, in _text_area
+    element_id = compute_and_register_element_id(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/elements/lib/utils.py", line 239, in compute_and_register_element_id
+    _register_element_id(ctx, element_type, element_id)
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/streamlit/elements/lib/utils.py", line 140, in _register_element_id
+    raise StreamlitDuplicateElementKey(user_key)
