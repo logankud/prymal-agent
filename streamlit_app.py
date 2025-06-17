@@ -131,7 +131,7 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 with c1:
                     st.markdown("**💬 Output**")
                     st.text_area("", info["output"], height=100, disabled=True,
-                                 key=f"out_{run_id}_{num}")
+                                 key=f"out_{run_id}_{num}_{len(st.session_state.current_run_logs)}")
                     if info["tools"]:
                         st.markdown("**🔨 Tools**")
                         for t in info["tools"]:
@@ -139,14 +139,14 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 with c2:
                     st.markdown("**🧾 Observations**")
                     st.text_area("", info["obs"], height=100, disabled=True,
-                                 key=f"obs_{run_id}_{num}")
+                                 key=f"obs_{run_id}_{num}_{len(st.session_state.current_run_logs)}")
                     if info["err"]:
                         st.markdown("**❌ Error**")
                         st.error(info["err"])
                 if info["input"] and len(info["input"]) < 800:
                     st.markdown("**📥 Input**")
                     st.text_area("", info["input"], height=80, disabled=True,
-                                 key=f"inp_{run_id}_{num}")
+                                 key=f"inp_{run_id}_{num}_{len(st.session_state.current_run_logs)}")
 
     # attach & run
     set_agents_session_id(st.session_state.session_id)
