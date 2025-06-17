@@ -132,7 +132,7 @@ if user_prompt and not st.session_state.processing_message:
     st.session_state.processing_message = True
     st.write(f"🔍 Debug: Set pending message: '{st.session_state.pending_user_message}'")
     st.write(f"🔍 Debug: Processing flag: {st.session_state.processing_message}")
-    st.experimental_rerun()  # to render the newly appended message immediately
+    st.rerun()  # to render the newly appended message immediately
 
 # ──────────────── Process agent response if there's a pending message ────────────────
 st.write(f"🔍 Debug: Checking for pending message...")
@@ -278,4 +278,4 @@ with st.sidebar:
     st.text_area("Session Link (copy to share/bookmark):", link, height=80)
     if st.button("Clear Chat"):
         st.session_state.messages = []
-        st.experimental_rerun()
+        st.rerun()
