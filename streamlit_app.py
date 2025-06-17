@@ -100,17 +100,16 @@ for msg in st.session_state.messages:
             </div>
         </div>""", unsafe_allow_html=True)
 
+# ──────────────── Initialize processing state ─────────────────────
+if "pending_user_message" not in st.session_state:
+    st.session_state.pending_user_message = None
+if "processing_message" not in st.session_state:
+    st.session_state.processing_message = False
+
 # ──────────────── New user input ─────────────────────
-# Generate a unique run_id for every new prompt
-run_id = uuid.uuid4().hex[:8]
+user_prompt = st.chat_input("What would you like to know about your Shopify data?")
 
-# Pass run_id into the key for chat_input
-user_prompt = st.chat_input(
-    "What would you like to know about your Shopify data?",
-    key=f"chat_input_{run_id}"
-)
-
-if user_prompt:
+if user_prompt and not st.session_state.processing_message:
     # Debug logging
     st.write(f"🔍 Debug: User submitted: '{user_prompt}'")
     st.write(f"🔍 Debug: Session ID: {st.session_state.session_id}")
@@ -137,17 +136,10 @@ if user_prompt:
 
 # ──────────────── Process agent response if there's a pending message ────────────────
 st.write(f"🔍 Debug: Checking for pending message...")
-st.write(f"🔍 Debug: pending_user_message exists: {hasattr(st.session_state, 'pending_user_message')}")
-if hasattr(st.session_state, 'pending_user_message'):
-    st.write(f"🔍 Debug: pending_user_message value: '{st.session_state.pending_user_message}'")
-st.write(f"🔍 Debug: processing_message exists: {hasattr(st.session_state, 'processing_message')}")
-if hasattr(st.session_state, 'processing_message'):
-    st.write(f"🔍 Debug: processing_message value: {st.session_state.processing_message}")
+st.write(f"🔍 Debug: pending_user_message value: '{st.session_state.pending_user_message}'")
+st.write(f"🔍 Debug: processing_message value: {st.session_state.processing_message}")
 
-if (hasattr(st.session_state, 'pending_user_message') and 
-    st.session_state.pending_user_message and 
-    hasattr(st.session_state, 'processing_message') and 
-    st.session_state.processing_message):
+if st.session_state.pending_user_message and st.session_state.processing_message:
     
     st.write("🚀 Debug: Starting agent processing...")
     # Containers for logs and answer
